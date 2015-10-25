@@ -1,4 +1,4 @@
 SPL-Files
 =========
 
-Shakespear prgramming language makefiles, examples and other stuff
+Shakespeare programming language makefiles, examples and other stuff.

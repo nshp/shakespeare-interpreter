@@ -647,15 +647,15 @@ LESS POSITIVE_ADJECTIVE {
 
 NegativeConstant:
 NegativeNoun {
-  $$ = newstr("(-1)");
+  $$ = (-1);
   free($1);
 }|
 NEGATIVE_ADJECTIVE NegativeConstant {
-  $$ = cat2(newstr("2*"), $2);
+  $$ = 2 * $2;
   free($1);
 }|
 NEUTRAL_ADJECTIVE NegativeConstant {
-  $$ = cat2(newstr("2*"), $2);
+  $$ = 2 * $2;
   free($1);
 };
 
@@ -726,15 +726,15 @@ LESS NEGATIVE_ADJECTIVE {
 
 PositiveConstant:
 PositiveNoun {
-  $$ = newstr("1");
+  $$ = 1;
   free($1);
 }|
 POSITIVE_ADJECTIVE PositiveConstant {
-  $$ = cat2(newstr("2*"), $2);
+  $$ = 2 * $2;
   free($1);
 }|
 NEUTRAL_ADJECTIVE PositiveConstant {
-  $$ = cat2(newstr("2*"), $2);
+  $$ = 2 * $2;
   free($1);
 };
 

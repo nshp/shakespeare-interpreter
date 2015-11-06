@@ -24,7 +24,8 @@ USA.
 %{
 #include <stdio.h>
 #include <stdlib.h>
-  
+
+#include <spl.h>  
 #include "strutils.h"
 #include "telma.h"
 
@@ -49,10 +50,18 @@ static int i;                        // all-purpose counter
 
 %union {
   char *str;
+  char chr;
+  int num;
   struct {
     int num;
     char **list;
   } stringlist;
+  
+  struct {
+    int num;
+    char **list;
+    char *str;
+  } data;
 }
 
 %token <str> ARTICLE
@@ -127,7 +136,7 @@ static int i;                        // all-purpose counter
 %type <str>        Act
 %type <str>        ActHeader
 %type <str>        Adjective
-%type <stringlist> BinaryOperator
+%type <chr> BinaryOperator
 %type <stringlist> CharacterDeclaration
 %type <stringlist> CharacterDeclarationList
 %type <stringlist> CharacterList
@@ -135,7 +144,7 @@ static int i;                        // all-purpose counter
 %type <str>        Comparative
 %type <str>        Comparison
 %type <str>        Conditional
-%type <str>        Constant
+%type <num>        Constant
 %type <str>        EndSymbol
 %type <str>        EnterExit
 %type <str>        Equality
@@ -147,14 +156,14 @@ static int i;                        // all-purpose counter
 %type <str>        JumpPhraseEnd
 %type <str>        Line
 %type <str>        NegativeComparative
-%type <str>        NegativeConstant
-%type <str>        NegativeNoun
+%type <num>        NegativeConstant
+%type <num>        NegativeNoun
 %type <str>        NonnegatedComparison
 %type <str>        OpenYour
 %type <str>        Play
 %type <str>        PositiveComparative
-%type <str>        PositiveConstant
-%type <str>        PositiveNoun
+%type <num>        PositiveConstant
+%type <num>        PositiveNoun
 %type <str>        Pronoun
 %type <str>        Question
 %type <str>        QuestionSymbol
@@ -170,11 +179,11 @@ static int i;                        // all-purpose counter
 %type <str>        StatementSymbol
 %type <str>        String
 %type <str>        StringSymbol
-%type <str>        Title
-%type <str>        UnarticulatedConstant
-%type <stringlist> UnaryOperator
+%type <data>       Title
+%type <num>        UnarticulatedConstant
+%type <num>        UnaryOperator
 %type <str>        UnconditionalSentence
-%type <str>        Value
+%type <num>        Value
 
 
 %start StartSymbol
@@ -225,38 +234,23 @@ NEGATIVE_ADJECTIVE {
 
 BinaryOperator:
 THE_DIFFERENCE_BETWEEN {
-  $$.list = (char **) malloc(3*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_sub("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(", ");
-  $$.list[2] = newstr(")");
+  $$ = '-';
   free($1);
 }|
 THE_PRODUCT_OF {
-  $$.list = (char **) malloc(3*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_mul("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(", ");
-  $$.list[2] = newstr(")");
+  $$ = '*';
   free($1);
 }|
 THE_QUOTIENT_BETWEEN {
-  $$.list = (char **) malloc(3*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_div("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(", ");
-  $$.list[2] = newstr(")");
+  $$ = '/';
   free($1);
 }|
 THE_REMAINDER_OF_THE_QUOTIENT_BETWEEN {
-  $$.list = (char **) malloc(3*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_mod("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(", ");
-  $$.list[2] = newstr(")");
+  $$ = '%';
   free($1);
 }|
 THE_SUM_OF {
-  $$.list = (char **) malloc(3*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_add("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(", ");
-  $$.list[2] = newstr(")");
+  $$ = '+';
   free($1);
 };
 
@@ -1102,33 +1096,23 @@ NegativeConstant {
 
 UnaryOperator:
 THE_CUBE_OF {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_cube("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(")");
+  $$ = 0;
   free($1);
 }|
 THE_FACTORIAL_OF {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_factorial("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(")");
+  $$ = 1;
   free($1);
 }|
 THE_SQUARE_OF {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_square("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(")");
+  $$ = 2;
   free($1);
 }|
 THE_SQUARE_ROOT_OF {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_sqrt("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(")");
+  $$ = 3;
   free($1);
 }|
 TWICE {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(newstr("int_twice("), int2str(yylineno), newstr(", "));
-  $$.list[1] = newstr(")");
+  $$ = 4;
   free($1);
 };
 
@@ -1163,45 +1147,48 @@ Pronoun {
   $$ = cat5(newstr("value_of("), int2str(yylineno), newstr(", "), $1, newstr(")"));
 }|
 BinaryOperator Value AND Value {
-  $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
-  free($1.list);
+  if($1 == '-')
+    $$ = $2 - $4;
+  else if($1 == '+')
+    $$ = $2 + $4;
+  else if($1 == '*')
+    $$ =  $2 * $4;
+  else if($1 == '/')
+    $$ = $2 / $4;
+  else if($1 == '%')
+    $$ = $2 % $4;
+
   free($3);
 }|
 UnaryOperator Value {
-  $$ = cat3($1.list[0], $2, $1.list[1]);
-  free($1.list);
+  if($1 == 0)
+    $$ = $2 * $2 * $2;
+  else if($1 == 1)
+    $$ = 0;
+  else if($1 == 2)
+    $$ = $2 * $2;
+  else if($1 == 3)
+    $$ = 0; 
+  else if($1 == 4)
+    $$ = $2 * 2;
 }|
 BinaryOperator Value AND error {
   report_error("value");
-  $$ = newstr("");
-  free($1.list[0]);
-  free($1.list[1]);
-  free($1.list[2]);
-  free($1.list);
+  $$ = 0;
   free($2);
   free($3);
 }|
 BinaryOperator Value error Value {
-  report_warning("'and'");
-  $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
-  free($1.list);
+  $$ = 0;
 }|
 BinaryOperator error AND Value {
-  report_error("value");
-  $$ = newstr("");
-  free($1.list[0]);
-  free($1.list[1]);
-  free($1.list[2]);
-  free($1.list);
+  $$ = 0;
   free($3);
   free($4);
 }|
 UnaryOperator error {
   report_error("value");
-  $$ = newstr("");
-  free($1.list[0]);
-  free($1.list[1]);
-  free($1.list);
+  $$ = 0;
 };
 
 %%

@@ -45,23 +45,22 @@ static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
 static int num_warnings = 0;         // warning counter
 static int i;                        // all-purpose counter
-
+static char* truth_value;
+static int comp1;
+static int comp2;
 %}
 
 %union {
   char *str;
   char chr;
   int num;
+
   struct {
     int num;
     char **list;
   } stringlist;
-  
-  struct {
-    int num;
-    char **list;
-    char *str;
-  } data;
+
+  bool boolean;
 }
 
 %token <str> ARTICLE
@@ -147,8 +146,8 @@ static int i;                        // all-purpose counter
 %type <num>        Constant
 %type <str>        EndSymbol
 %type <str>        EnterExit
-%type <str>        Equality
-%type <str>        Inequality
+%type <boolean>    Equality
+%type <boolean>    Inequality
 %type <str>        InOut
 %type <str>        Jump
 %type <str>        JumpPhrase
@@ -446,7 +445,7 @@ LEFT_BRACKET error RIGHT_BRACKET {
 
 Equality:
 AS Adjective AS {
-  $$ = newstr("comp1 == comp2");
+  $$ = (comp1 == comp2);
   free($1);
   free($2);
   free($3);
@@ -762,9 +761,10 @@ SECOND_PERSON_REFLEXIVE {
 
 Question:
 BE Value Comparison Value QuestionSymbol {
-  $$ = cat9(newstr("comp1 = "), $2, newstr(";\n"),
-	    newstr("comp2 = "), $4, newstr(";\n"),
-	    newstr("truth_flag = "), $3, newstr(";\n"));
+  comp1 = $2;
+  comp2 = $4;
+  truth_flag = $3;
+
   free($1);
   free($5);
 }|
@@ -882,7 +882,7 @@ Sentence:
 UnconditionalSentence {
   $$ = $1;
 }|
-Conditional COMMA UnconditionalSentence {
+Conditional COMMAUnconditionalSentence {
   $$ = cat5(newstr("if ("), $1, newstr(") {\n"), strindent($3, INDENT), newstr("}\n"));
 }|
 Conditional error UnconditionalSentence {

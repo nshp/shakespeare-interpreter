@@ -45,7 +45,7 @@ static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
 static int num_warnings = 0;         // warning counter
 static int i;                        // all-purpose counter
-static char* truth_value;
+static bool truth_flag;
 static int comp1;
 static int comp2;
 %}
@@ -142,7 +142,7 @@ static int comp2;
 %type <str>        Comment
 %type <str>        Comparative
 %type <str>        Comparison
-%type <str>        Conditional
+%type <boolean>    Conditional
 %type <num>        Constant
 %type <str>        EndSymbol
 %type <str>        EnterExit
@@ -336,11 +336,11 @@ NonnegatedComparison {
 
 Conditional:
 IF_SO {
-  $$ = newstr("truth_flag");
+  $$ = truth_flag;
   free($1);
 }|
 IF_NOT {
-  $$ = newstr("!truth_flag");
+  $$ = !truth_flag;
   free($1);
 };
 
@@ -882,18 +882,19 @@ Sentence:
 UnconditionalSentence {
   $$ = $1;
 }|
-Conditional COMMAUnconditionalSentence {
-  $$ = cat5(newstr("if ("), $1, newstr(") {\n"), strindent($3, INDENT), newstr("}\n"));
+Conditional COMMA UnconditionalSentence {
+  if($1){ }
 }|
 Conditional error UnconditionalSentence {
   report_warning("comma");
-  $$ = cat5(newstr("if ("), $1, newstr(") {\n"), strindent($3, INDENT), newstr("}\n"));
+  if($1){ } 
 };
 
 SentenceList:
 Sentence {
   $$ = $1;
 }|
+
 SentenceList Sentence {
   $$ = cat2($1, $2);
 };
@@ -922,18 +923,18 @@ Play {
 
 Statement:
 SECOND_PERSON BE Constant StatementSymbol {
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $3, newstr(");\n"));
+  second_person -> value = $3;
   free($1);
   free($2);
   free($4);
 }|
 SECOND_PERSON UnarticulatedConstant StatementSymbol {
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $2, newstr(");\n"));
+  second_person -> value = $2;
   free($1);
   free($3);
 }|
 SECOND_PERSON BE Equality Value StatementSymbol {
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $4, newstr(");\n"));
+  second_person -> value = $4;
   free($1);
   free($2);
   free($3);
@@ -941,7 +942,7 @@ SECOND_PERSON BE Equality Value StatementSymbol {
 }|
 SECOND_PERSON BE Constant error {
   report_warning("period or exclamation mark");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $3, newstr(");\n"));
+  second_person -> value = $3;
   free($1);
   free($2);
 }|
@@ -954,13 +955,13 @@ SECOND_PERSON BE error StatementSymbol {
 }|
 SECOND_PERSON error Constant StatementSymbol {
   report_warning("be");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $3, newstr(");\n"));
+  second_person -> value = $3;
   free($1);
   free($4);
 }|
 SECOND_PERSON UnarticulatedConstant error {
   report_warning("period or exclamation mark");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $2, newstr(");\n"));
+  second_person -> value = $2;
   free($1);
 }|
 SECOND_PERSON error StatementSymbol {
@@ -971,7 +972,7 @@ SECOND_PERSON error StatementSymbol {
 }|
 SECOND_PERSON BE Equality Value error {
   report_warning("period or exclamation mark");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $4, newstr(");\n"));
+  second_person -> value = $4;
   free($1);
   free($2);
   free($3);
@@ -986,14 +987,14 @@ SECOND_PERSON BE Equality error StatementSymbol {
 }|
 SECOND_PERSON BE error Value StatementSymbol {
   report_warning("equality");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $4, newstr(");\n"));
+  second_person -> value = $4;
   free($1);
   free($2);
   free($5);
 }|
 SECOND_PERSON error Equality Value StatementSymbol {
   report_warning("be");
-  $$ = cat5(newstr("assign("), int2str(yylineno), newstr(", second_person, "), $4, newstr(");\n"));
+  second_person -> value = $4;
   free($1);
   free($3);
   free($5);

@@ -25,6 +25,7 @@ USA.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <libspl.c>
 #include <spl.h>  
 #include "strutils.h"
 #include "telma.h"
@@ -54,13 +55,14 @@ static int comp2;
   char *str;
   char chr;
   int num;
-
+  bool boolean;
+  CHARACTER* character;
+  CHARACTER** charlist;
   struct {
     int num;
     char **list;
   } stringlist;
 
-  bool boolean;
 }
 
 %token <str> ARTICLE
@@ -135,13 +137,13 @@ static int comp2;
 %type <str>        Act
 %type <str>        ActHeader
 %type <str>        Adjective
-%type <chr> BinaryOperator
-%type <stringlist> CharacterDeclaration
-%type <stringlist> CharacterDeclarationList
+%type <chr>        BinaryOperator
+%type <character>  CharacterDeclaration
+%type <charlist>   CharacterDeclarationList
 %type <stringlist> CharacterList
 %type <str>        Comment
 %type <str>        Comparative
-%type <str>        Comparison
+%type <boolean>    Comparison
 %type <boolean>    Conditional
 %type <num>        Constant
 %type <str>        EndSymbol
@@ -255,39 +257,34 @@ THE_SUM_OF {
 
 CharacterDeclaration:
 CHARACTER COMMA Comment EndSymbol {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = cat3(strpad(cat3(newstr("CHARACTER *"), str2varname(newstr($1)),
-				newstr(";")), COMMENT_COLUMN, ' '),
-		    $3, newstr("\n"));
-  $$.list[1] = cat4(str2varname(newstr($1)), newstr(" = initialize_character(\""),
-		    $1, newstr("\");\n"));
+  $$ = initialize_character($1);
   free($2);
   free($4);
 }|
 error COMMA Comment EndSymbol {
   report_error("character name");
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = newstr("");
-  $$.list[1] = newstr("");
 }|
 CHARACTER error Comment EndSymbol {
   report_error("comma");
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = newstr("");
-  $$.list[1] = newstr("");
 };
 
 CharacterDeclarationList:
 CharacterDeclaration {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = $1.list[0];
-  $$.list[1] = $1.list[1];
-  free($1.list);
+  $$ = (CHARACTER **) malloc(sizeof(CHARACTER **));
+  $$[0] = $1;
 }|
 CharacterDeclarationList CharacterDeclaration {
-  $$.list = $1.list;
-  $$.list[0] = cat2($1.list[0], $2.list[0]);
-  $$.list[1] = cat2($1.list[1], $2.list[1]);
+  $$ = (CHARACTER **) malloc(sizeof($1)+sizeof(CHARACTER**));
+  
+  int i;
+
+  for(i = 0; i < sizeof($1) / sizeof(CHARACTER**); i++)
+  {
+    $$[i] = $1[i];
+  }
+
+  $$[i] = $2;
+
   free($2.list);
 };
 
@@ -327,7 +324,7 @@ PositiveComparative {
 
 Comparison:
 NOT NonnegatedComparison {
-  $$ = cat2(newstr("!"), $2);
+  $$ = !$2
   free($1);
 }|
 NonnegatedComparison {
@@ -336,11 +333,10 @@ NonnegatedComparison {
 
 Conditional:
 IF_SO {
-  $$ = truth_flag;
   free($1);
 }|
 IF_NOT {
-  $$ = !truth_flag;
+  truth_flag = !truth_flag;
   free($1);
 };
 

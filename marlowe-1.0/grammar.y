@@ -24,6 +24,7 @@ USA.
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <glib.h>
 
 #include "helper.h"
 #include "strutils.h"
@@ -31,6 +32,10 @@ USA.
 
 #define COMMENT_COLUMN   40  //
 #define INDENTATION_SIZE 2   // number of spaces to indent output C code
+
+/* ERROR CODES */
+#define ERROR_OUT_OF_MEM 10
+#define ERROR_NO_STACK   11
 
 /* macro to create indentation space */
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
@@ -40,6 +45,8 @@ static void report_error(const char *expected_symbol);
 static void report_warning(const char *expected_symbol);
 
 /* Global variables local to this file */
+const  GHashTable *HASH = g_hash_table_new(g_str_hash, g_str_equal);
+static CHARACTERLIST *ON_STAGE;
 static char *current_act = NULL;
 static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
@@ -350,18 +357,25 @@ CHARACTER {
 
 void push(character * c, int i)
 {
-   STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
-   s -> num = i;
-   s -> next = c -> stack;
-   c -> stack = s;
+  STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
+  if (!s) exit(ERROR_OUT_OF_MEM); 
+  s -> num = i;
+  s -> next = c -> stack;
+  c -> stack = s;
 }
 
 int pop(character * c)
 {
-   int i = c -> stack -> num;
-   c -> stack = c -> stack -> next;
-
-   return i;
+  int i;
+  STACKNODE *next;
+  if (c->stack != NULL) {
+    i = c->stack->num;
+    next = c->stack-next;
+    free(c->stack);
+    c->stack = next;
+    return i;
+  }
+  exit(ERROR_NO_STACK);
 }
 
 int yyerror(char *s)
@@ -381,6 +395,24 @@ void report_warning(const char *expected_symbol)
   fprintf(stderr, "Warning at line %d: %s expected\n", yylineno, expected_symbol);
   num_warnings++;
 }
+
+void initialize_character(const char *name)
+{
+	character *c = (character*)malloc(sizeof(character));
+  c->num       = 0;
+  c->stack     = NULL;
+	g_hash_table_insert(HASH, name, c);
+}
+
+void get_character(const char *name)
+{
+  character *c = g_hash_table_lookup(HASH, name);
+  return c;
+}
+
+void enter_stage(const char *name)
+{
+  character *c = 
 
 int main(void)
 {

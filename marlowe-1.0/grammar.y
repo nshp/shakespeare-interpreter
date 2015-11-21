@@ -142,6 +142,10 @@ num_warnings  = 0;           // warning counter
 %type <str>        QuestionSymbol
 %type <num>        Recall
 %type <str>        Remember
+%type <num>        Constant
+%type <num>        UnarticulatedConstant
+%type <num>        PositiveConstant
+%type <num>        NegativeConstant
 %start StartSymbol
 
 %%
@@ -283,42 +287,43 @@ LEFT_BRACKET EXIT CHARACTER RIGHT_BRACKET {
   free($4);
 }|
 LEFT_BRACKET EXEUNT CharacterList RIGHT_BRACKET {
-  exeunt_stage($3);
+  exit_stage($3);
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXEUNT RIGHT_BRACKET {
-  $$ = cat3(newstr("\nexit_scene_all("), int2str(yylineno), newstr(");\n"));
+  exeunt_stage();
+
   free($1);
   free($2);
   free($3);
 }|
 LEFT_BRACKET ENTER error RIGHT_BRACKET {
   report_error("character or character list");
-  $$ = newstr("");
+
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXIT error RIGHT_BRACKET {
   report_error("character");
-  $$ = newstr("");
+
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXEUNT error RIGHT_BRACKET {
   report_error("character list or nothing");
-  $$ = newstr("");
+
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET error RIGHT_BRACKET {
   report_error("'enter', 'exit' or 'exeunt'");
-  $$ = newstr("");
+
   free($1);
   free($3);
 };
@@ -404,6 +409,73 @@ StringSymbol: ARTICLE                                { $$ = $1; }
 Value:
 CHARACTER {
   $$ = get_character($1)->num;
+}|
+Constant {
+  $$ = $1;
+};
+
+Constant:
+ARTICLE UnarticulatedConstant {
+  $$ = $2;
+  free($1);
+}|
+FIRST_PERSON_POSSESSIVE UnarticulatedConstant {
+  $$ = $2;
+  free($1);
+}|
+SECOND_PERSON_POSSESSIVE UnarticulatedConstant {
+  $$ = $2;
+  free($1);
+}|
+THIRD_PERSON_POSSESSIVE UnarticulatedConstant {
+  $$ = $2;
+  free($1);
+}|
+NOTHING {
+  $$ = 0;
+  free($1);
+};
+
+
+UnarticulatedConstant:
+PositiveConstant {
+     $$ = $1;
+}|
+NegativeConstant {
+     $$ = $1;
+};
+
+PositiveConstant:
+PositiveNoun {
+    $$ = 1;
+    free($1);
+}|
+POSITIVE_ADJECTIVE PositiveConstant {
+    $$ = 2*$2;
+    free($1);
+}|
+NEUTRAL_ADJECTIVE PositiveConstant {
+    $$ = 2*$2;
+    free($1);
+};
+
+NegativeConstant:
+NegativeNoun {
+    $$ = (-1);
+    free($1);
+}|
+NEGATIVE_ADJECTIVE NegativeConstant {
+    $$ = 2*$2;
+    free($1);
+}|
+NEUTRAL_ADJECTIVE NegativeConstant {
+    $$ = 2*$2;
+    free($1);
+};
+
+NegativeNoun:
+NEGATIVE_NOUN {
+    $$ = $1;
 };
 
 %%

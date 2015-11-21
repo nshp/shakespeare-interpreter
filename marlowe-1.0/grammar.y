@@ -53,6 +53,15 @@ static int i;                        // all-purpose counter
     char **list;
   } stringlist;
 
+  struct {
+    int num;
+    STACKNODE* stack;
+  } character;
+
+  struct {
+     int num;
+     STACKNODE* next;
+  } STACKNODE;
 }
 
 %token <str> ARTICLE
@@ -347,6 +356,22 @@ CHARACTER {
 };
 
 %%
+
+void push(character * c, int i)
+{
+   (struct STACKNODE *) s = (struct STACKNODE *) malloc(sizeof(struct STACKNODE));
+   s -> num = i;
+   s -> next = c -> stack;
+   c -> stack = s;
+}
+
+int pop(character * c)
+{
+   int i = c -> stack -> num;
+   c -> stack = c -> stack -> next;
+
+   return i;
+}
 
 int yyerror(char *s)
 {

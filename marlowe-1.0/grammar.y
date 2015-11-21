@@ -50,8 +50,8 @@ void exit_stage(CHARACTERLIST *c);
 void exeunt_stage(void);
 
 /* Global variables local to this file */
-const  GHashTable *HASH = g_hash_table_new(g_str_hash, g_str_equal);
-static CHARACTERLIST *ON_STAGE;
+const  GHashTable HASH = g_hash_table_new(g_str_hash, g_str_equal);
+static GHashTable ON_STAGE;
 static char *current_act = NULL;
 static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
@@ -392,7 +392,7 @@ int pop(character * c)
   STACKNODE *next;
   if (c->stack != NULL) {
     i = c->stack->num;
-    next = c->stack-next;
+    next = c->stack->next;
     free(c->stack);
     c->stack = next;
     return i;
@@ -443,6 +443,7 @@ void enter_stage(CHARACTERLIST *c)
     g_hash_table_insert(ON_STAGE, curr->name);
     c = c->next;
     free(curr);
+    
   }
 }
 
@@ -462,7 +463,18 @@ void exeunt_stage(void)
   g_hash_table_destroy(ON_STAGE);
 }
 
+bool is_on_stage(const char *name)
+{
+  return g_hash_table_lookup(ON_STAGE, name)
+}
+
+void activate_character(const char *name)
+{
+  if (!is_on_stage(name)) exit(ERROR_NOT_ON_STAGE);
+   
+}
   
+
 int main(void)
 {
 #if(YYDEBUG == 1)

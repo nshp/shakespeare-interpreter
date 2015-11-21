@@ -12,4 +12,10 @@ typedef struct {
 	STACKNODE *stack;
 } character;
 
+typedef struct _CHARACTERLIST CHARACTERLIST;
+struct _CHARACTERLIST {
+  char *name;
+  CHARACTERLIST *next;
+};
+
 #endif

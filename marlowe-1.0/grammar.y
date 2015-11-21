@@ -146,6 +146,9 @@ num_warnings  = 0;           // warning counter
 %type <num>        UnarticulatedConstant
 %type <num>        PositiveConstant
 %type <num>        NegativeConstant
+%type <str>        PositiveNoun
+%type <str>        NegativeNoun
+
 %start StartSymbol
 
 %%
@@ -457,6 +460,14 @@ POSITIVE_ADJECTIVE PositiveConstant {
 NEUTRAL_ADJECTIVE PositiveConstant {
     $$ = 2*$2;
     free($1);
+};
+
+PositiveNoun:
+NEUTRAL_NOUN {
+     $$ = $1;
+}|
+POSITIVE_NOUN {
+     $$ = $1;
 };
 
 NegativeConstant:

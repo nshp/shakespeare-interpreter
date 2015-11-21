@@ -28,7 +28,7 @@ USA.
 #include "strutils.h"
 #include "telma.h"
 
-#define COMMENT_COLUMN   40  // 
+#define COMMENT_COLUMN   40  //
 #define INDENTATION_SIZE 2   // number of spaces to indent output C code
 
 /* macro to create indentation space */
@@ -162,7 +162,7 @@ QuestionSymbol {
 StatementSymbol {
    $$ = $1;
 };
-      
+
 QuestionSymbol:
 QUESTION_MARK {
      $$ = $1;
@@ -214,7 +214,7 @@ LEFT_BRACKET ENTER CharacterList RIGHT_BRACKET {
   $$ = newstr("\n");
   for (i = 0; i < $3.num; i++) {
     $$ = cat6($$, newstr("enter_scene("), int2str(yylineno), newstr(", "),
-	      str2varname($3.list[i]), newstr(");\n"));
+          str2varname($3.list[i]), newstr(");\n"));
   }
   free($3.list);
   free($1);
@@ -231,7 +231,7 @@ LEFT_BRACKET EXEUNT CharacterList RIGHT_BRACKET {
   $$ = newstr("\n");
   for (i = 0; i < $3.num; i++) {
     $$ = cat6($$, newstr("exit_scene("), int2str(yylineno), newstr(", "),
-	      str2varname($3.list[i]), newstr(");\n"));
+          str2varname($3.list[i]), newstr(");\n"));
   }
   free($3.list);
   free($1);

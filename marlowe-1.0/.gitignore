@@ -1,0 +1,12 @@
+*.sw*
+*.a
+*.o
+*.out
+*.un*
+spl
+spl2c
+makescanner
+*.output
+grammar.tab.*
+scanner.c
+scanner.l

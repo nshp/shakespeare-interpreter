@@ -1,6 +1,25 @@
 #ifndef HELPER_H
 #define HELPER_H
 
+/* Typedefs */
+#define bool int
+typedef struct _STACKNODE STACKNODE;
+struct _STACKNODE {
+	int num;
+	STACKNODE *next;
+};
+
+typedef struct {
+	int num;
+	STACKNODE *stack;
+} character;
+
+typedef struct _CHARACTERLIST CHARACTERLIST;
+struct _CHARACTERLIST {
+  char *name;
+  CHARACTERLIST *next;
+};
+
 /* Local function prototypes */
 static void report_error(const char *expected_symbol);
 static void report_warning(const char *expected_symbol);
@@ -18,22 +37,5 @@ static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
 static int num_warnings = 0;         // warning counter
 static int i;                        // all-purpose counter
-
-typedef struct _STACKNODE STACKNODE;
-struct _STACKNODE {
-	int num;
-	STACKNODE *next;
-};
-
-typedef struct {
-	int num;
-	STACKNODE *stack;
-} character;
-
-typedef struct _CHARACTERLIST CHARACTERLIST;
-struct _CHARACTERLIST {
-  char *name;
-  CHARACTERLIST *next;
-};
 
 #endif

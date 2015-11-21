@@ -34,8 +34,9 @@ USA.
 #define INDENTATION_SIZE 2   // number of spaces to indent output C code
 
 /* ERROR CODES */
-#define ERROR_OUT_OF_MEM 10
-#define ERROR_NO_STACK   11
+#define ERROR_OUT_OF_MEM   10
+#define ERROR_NO_STACK     11
+#define ERROR_NOT_ON_STAGE 12
 
 /* macro to create indentation space */
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
@@ -470,7 +471,7 @@ void enter_stage(CHARACTERLIST *c)
   CHARACTERLIST *curr;
   while (c != NULL) {
     curr = c;
-    g_hash_table_insert(ON_STAGE, curr->name);
+    g_hash_table_insert(ON_STAGE, curr->name, );
     c = c->next;
     free(curr);
     
@@ -495,7 +496,7 @@ void exeunt_stage(void)
 
 bool is_on_stage(const char *name)
 {
-  return g_hash_table_lookup(ON_STAGE, name)
+  return g_hash_table_lookup(ON_STAGE, name);
 }
 
 void activate_character(const char *name)

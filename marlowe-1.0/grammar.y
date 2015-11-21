@@ -43,6 +43,11 @@ USA.
 /* Local function prototypes */
 static void report_error(const char *expected_symbol);
 static void report_warning(const char *expected_symbol);
+void initialize_character(const char *name);
+character *get_character(const char *name);
+void enter_stage(CHARACTERLIST *c);
+void exit_stage(CHARACTERLIST *c);
+void exeunt_stage(void);
 
 /* Global variables local to this file */
 const  GHashTable *HASH = g_hash_table_new(g_str_hash, g_str_equal);
@@ -421,16 +426,43 @@ void initialize_character(const char *name)
 	g_hash_table_insert(HASH, name, c);
 }
 
-void get_character(const char *name)
+character *get_character(const char *name)
 {
   character *c = g_hash_table_lookup(HASH, name);
   return c;
 }
 
-void enter_stage(const char *name)
+void enter_stage(CHARACTERLIST *c)
 {
-  character *c = 
+  if (!ON_STAGE)
+    ON_STAGE = g_hash_table_new(g_str_hash, g_str_equal);
 
+  CHARACTERLIST *curr;
+  while (c != NULL) {
+    curr = c;
+    g_hash_table_insert(ON_STAGE, curr->name);
+    c = c->next;
+    free(curr);
+  }
+}
+
+void exit_stage(CHARACTERLIST *c)
+{
+  CHARACTERLIST *curr;
+  while(c != NULL) {
+    curr = c;
+    g_hash_table_remove(ON_STAGE, curr->name);
+    c = c->next;
+    free(curr);
+  }
+}
+
+void exeunt_stage(void)
+{
+  g_hash_table_destroy(ON_STAGE);
+}
+
+  
 int main(void)
 {
 #if(YYDEBUG == 1)

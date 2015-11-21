@@ -40,23 +40,13 @@ USA.
 /* macro to create indentation space */
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
 
-/* Local function prototypes */
-static void report_error(const char *expected_symbol);
-static void report_warning(const char *expected_symbol);
-void initialize_character(const char *name);
-character *get_character(const char *name);
-void enter_stage(CHARACTERLIST *c);
-void exit_stage(CHARACTERLIST *c);
-void exeunt_stage(void);
-
 /* Global variables local to this file */
-const  GHashTable HASH = g_hash_table_new(g_str_hash, g_str_equal);
-static GHashTable ON_STAGE;
-static char *current_act = NULL;
-static char *current_scene = NULL;
-static int num_errors = 0;           // error counter
-static int num_warnings = 0;         // warning counter
-static int i;                        // all-purpose counter
+CHARACTERS    = g_hash_table_new(g_str_hash, g_str_equal);
+ON_STAGE      = g_hash_table_new(g_str_hash, g_str_equal);
+current_act   = NULL;
+current_scene = NULL;
+num_errors    = 0;           // error counter
+num_warnings  = 0;           // warning counter
 %}
 
 %union {
@@ -463,12 +453,12 @@ void initialize_character(const char *name)
 	character *c = (character*)malloc(sizeof(character));
   c->num       = 0;
   c->stack     = NULL;
-	g_hash_table_insert(HASH, name, c);
+	g_hash_table_insert(CHARACTERS, name, c);
 }
 
 character *get_character(const char *name)
 {
-  character *c = g_hash_table_lookup(HASH, name);
+  character *c = g_hash_table_lookup(CHARACTERS, name);
   return c;
 }
 

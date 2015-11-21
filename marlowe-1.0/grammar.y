@@ -126,7 +126,7 @@ static int i;                        // all-purpose counter
 
 %type <character>  CharacterDeclaration
 %type <charlist>   CharacterDeclarationList
-%type <stringlist> CharacterList
+%type <CHARACTERLIST> CharacterList
 %type <str>        Comment
 %type <str>        EnterExit
 %type <str>        StatementSymbol
@@ -153,7 +153,6 @@ QuestionSymbol {
 StatementSymbol {
    $$ = $1;
 };
-
 QuestionSymbol:
 QUESTION_MARK {
      $$ = $1;
@@ -161,6 +160,7 @@ QUESTION_MARK {
 
 CharacterDeclaration:
 CHARACTER COMMA Comment EndSymbol {
+  initialize_character($1);
   free($2);
   free($4);
 }|
@@ -173,6 +173,7 @@ CHARACTER error Comment EndSymbol {
 
 CharacterDeclarationList:
 CharacterDeclaration {
+
 }|
 CharacterDeclarationList CharacterDeclaration {
 
@@ -180,9 +181,25 @@ CharacterDeclarationList CharacterDeclaration {
 
 CharacterList:
 CHARACTER AND CHARACTER {
+   CHARACTERLIST *s1 = (CHARACTERLIST*)malloc(sizeof(CHARACTERLIST));
+   s1 -> name = $1;
+   s1 -> next = NULL;
+
+   CHARACTERLIST *s2 = (CHARACTERLIST*)malloc(sizeof(CHARACTERLIST));
+   s2 -> name = $3;
+   s2 -> next = s1;
+   
+   $$ = s2;
 }|
 CHARACTER COMMA CharacterList {
+  CHARACTERLIST *s = (CHARACTERLIST*)malloc(sizeof(CHARACTERLIST));
+  s -> name = $1;
+  s -> next = $3;
+  
+
   free($2);
+
+   $$ = s;
 };
 
 Comment:
@@ -196,35 +213,35 @@ error {
 
 EnterExit:
 LEFT_BRACKET ENTER CHARACTER RIGHT_BRACKET {
-  $$ = cat5(newstr("\nenter_scene("), int2str(yylineno), newstr(", "), str2varname($3), newstr(");\n"));
+  CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
+  c -> name = $3;
+  c -> next = NULL;
+
+  enter_stage(c);
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET ENTER CharacterList RIGHT_BRACKET {
-  $$ = newstr("\n");
-  for (i = 0; i < $3.num; i++) {
-    $$ = cat6($$, newstr("enter_scene("), int2str(yylineno), newstr(", "),
-          str2varname($3.list[i]), newstr(");\n"));
-  }
-  free($3.list);
+  enter_stage($3);
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXIT CHARACTER RIGHT_BRACKET {
-  $$ = cat5(newstr("\nexit_scene("), int2str(yylineno), newstr(", "), str2varname($3), newstr(");\n"));
+  CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
+  c -> name = $3;
+  c -> next = NULL;
+
+  exit_stage(c);
+
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXEUNT CharacterList RIGHT_BRACKET {
-  $$ = newstr("\n");
-  for (i = 0; i < $3.num; i++) {
-    $$ = cat6($$, newstr("exit_scene("), int2str(yylineno), newstr(", "),
-          str2varname($3.list[i]), newstr(");\n"));
-  }
-  free($3.list);
+  exeunt_stage($3);
+
   free($1);
   free($2);
   free($4);

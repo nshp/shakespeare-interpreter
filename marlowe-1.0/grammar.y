@@ -25,6 +25,7 @@ USA.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "helper.h"
 #include "strutils.h"
 #include "telma.h"
 
@@ -52,16 +53,6 @@ static int i;                        // all-purpose counter
     int num;
     char **list;
   } stringlist;
-
-  struct {
-    int num;
-    STACKNODE* stack;
-  } character;
-
-  struct {
-     int num;
-     STACKNODE* next;
-  } STACKNODE;
 }
 
 %token <str> ARTICLE
@@ -359,7 +350,7 @@ CHARACTER {
 
 void push(character * c, int i)
 {
-   (struct STACKNODE *) s = (struct STACKNODE *) malloc(sizeof(struct STACKNODE));
+   STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
    s -> num = i;
    s -> next = c -> stack;
    c -> stack = s;

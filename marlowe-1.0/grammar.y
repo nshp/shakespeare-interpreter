@@ -61,6 +61,7 @@ static int i;                        // all-purpose counter
 
 %union {
   char *str;
+  int num;
   struct {
     int num;
     char **list;
@@ -148,6 +149,8 @@ static int i;                        // all-purpose counter
 %type <str>        StartSymbol
 %type <str>        EndSymbol
 %type <str>        QuestionSymbol
+%type <num>        Recall
+%type <str>        Remember
 %start StartSymbol
 
 %%
@@ -168,6 +171,43 @@ StatementSymbol {
 QuestionSymbol:
 QUESTION_MARK {
      $$ = $1;
+};
+
+Recall:
+RECALL String StatementSymbol {
+  $$ = pop(second_person);
+  free($1);
+  free($2);
+  free($3);
+}|
+RECALL error StatementSymbol {
+  report_warning("string");
+  $$ = pop(second_person);
+  free($1);
+  free($3);
+}|
+RECALL String error {
+  report_warning("period or exclamation mark");
+  $$ = pop(second_person);
+  free($1);
+  free($2);
+};
+
+Remember:
+REMEMBER Value StatementSymbol {
+  push(second_person, $2);
+  free($1);
+  free($3);
+}|
+REMEMBER error StatementSymbol {
+  report_error("value");
+  free($1);
+  free($3);
+}|
+REMEMBER Value error {
+  report_warning("period or exclamation mark");
+  push(second_person, $2);
+  free($1);
 };
 
 CharacterDeclaration:
@@ -372,7 +412,7 @@ StringSymbol: ARTICLE                                { $$ = $1; }
             ;
 Value:
 CHARACTER {
-  $$ = cat2(str2varname($1), newstr("->value"));
+  $$ = get_character($1)->num;
 };
 
 %%

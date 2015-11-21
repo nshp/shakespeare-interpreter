@@ -25,8 +25,6 @@ USA.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <libspl.c>
-#include <spl.h>  
 #include "strutils.h"
 #include "telma.h"
 
@@ -46,18 +44,10 @@ static char *current_scene = NULL;
 static int num_errors = 0;           // error counter
 static int num_warnings = 0;         // warning counter
 static int i;                        // all-purpose counter
-static bool truth_flag;
-static int comp1;
-static int comp2;
 %}
 
 %union {
   char *str;
-  char chr;
-  int num;
-  bool boolean;
-  CHARACTER* character;
-  CHARACTER** charlist;
   struct {
     int num;
     char **list;
@@ -134,66 +124,43 @@ static int comp2;
 %token <str> NONMATCH
 
 
-%type <str>        Act
-%type <str>        ActHeader
-%type <str>        Adjective
-%type <chr>        BinaryOperator
 %type <character>  CharacterDeclaration
 %type <charlist>   CharacterDeclarationList
 %type <stringlist> CharacterList
 %type <str>        Comment
-%type <str>        Comparative
-%type <boolean>    Comparison
-%type <boolean>    Conditional
-%type <num>        Constant
-%type <str>        EndSymbol
 %type <str>        EnterExit
-%type <boolean>    Equality
-%type <boolean>    Inequality
-%type <str>        InOut
-%type <str>        Jump
-%type <str>        JumpPhrase
-%type <str>        JumpPhraseBeginning
-%type <str>        JumpPhraseEnd
-%type <str>        Line
-%type <str>        NegativeComparative
-%type <num>        NegativeConstant
-%type <num>        NegativeNoun
-%type <str>        NonnegatedComparison
-%type <str>        OpenYour
-%type <str>        Play
-%type <str>        PositiveComparative
-%type <num>        PositiveConstant
-%type <num>        PositiveNoun
-%type <str>        Pronoun
-%type <str>        Question
-%type <str>        QuestionSymbol
-%type <str>        Recall
-%type <str>        Remember
-%type <str>        Scene
-%type <str>        SceneContents
-%type <str>        SceneHeader
-%type <str>        Sentence
-%type <str>        SentenceList
-%type <str>        StartSymbol
-%type <str>        Statement
 %type <str>        StatementSymbol
 %type <str>        String
 %type <str>        StringSymbol
-%type <data>       Title
-%type <num>        UnarticulatedConstant
-%type <num>        UnaryOperator
-%type <str>        UnconditionalSentence
 %type <num>        Value
-
-
+%type <str>        StartSymbol
+%type <str>        EndSymbol
+%type <str>        QuestionSymbol
 %start StartSymbol
 
 %%
 
+StartSymbol:
+CharacterDeclarationList {
+
+}
+
+
+EndSymbol:
+QuestionSymbol {
+   $$ = $1;
+}|
+StatementSymbol {
+   $$ = $1;
+};
+      
+QuestionSymbol:
+QUESTION_MARK {
+     $$ = $1;
+};
+
 CharacterDeclaration:
 CHARACTER COMMA Comment EndSymbol {
-  $$ = initialize_character($1);
   free($2);
   free($4);
 }|
@@ -206,36 +173,15 @@ CHARACTER error Comment EndSymbol {
 
 CharacterDeclarationList:
 CharacterDeclaration {
-  $$ = (CHARACTER **) malloc(sizeof(CHARACTER **));
-  $$[0] = $1;
 }|
 CharacterDeclarationList CharacterDeclaration {
-  $$ = (CHARACTER **) malloc(sizeof($1)+sizeof(CHARACTER**));
-  
-  int i;
 
-  for(i = 0; i < sizeof($1) / sizeof(CHARACTER**); i++)
-  {
-    $$[i] = $1[i];
-  }
-
-  $$[i] = $2;
-
-  free($2.list);
 };
 
 CharacterList:
 CHARACTER AND CHARACTER {
-  $$.list = (char **) malloc(2*sizeof(char **));
-  $$.list[0] = $1;
-  $$.list[1] = $3;
-  $$.num = 2;
-  free($2);
 }|
 CHARACTER COMMA CharacterList {
-  $$.num = $3.num + 1;
-  $$.list = realloc($3.list, $$.num*sizeof(char **));
-  $$.list[$$.num - 1] = $1;
   free($2);
 };
 
@@ -312,25 +258,6 @@ LEFT_BRACKET EXEUNT error RIGHT_BRACKET {
 }|
 LEFT_BRACKET error RIGHT_BRACKET {
   report_error("'enter', 'exit' or 'exeunt'");
-  $$ = newstr("");
-  free($1);
-  free($3);
-};
-
-Line:
-CHARACTER COLON SentenceList {
-  $$ = cat6(newstr("\nactivate_character("), int2str(yylineno), newstr(", "), str2varname($1),
-	    newstr(");\n"), $3);
-  free($2);
-}|
-CHARACTER COLON error {
-  report_error("sentence list");
-  $$ = newstr("");
-  free($1);
-  free($2);
-}|
-CHARACTER error SentenceList {
-  report_error("colon");
   $$ = newstr("");
   free($1);
   free($3);

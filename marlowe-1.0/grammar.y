@@ -44,13 +44,11 @@ USA.
 /* Global variables local to this file */
 GHashTable *CHARACTERS;
 GHashTable *ON_STAGE;
-static char *current_act      = NULL;
-static char *current_scene    = NULL;
-static int num_errors;           // error counter
-static int num_warnings;         // warning counter
-static int i;                    // all-purpose counter
+static char *current_act           = NULL;
+static char *current_scene         = NULL;
 static character *first_person     = NULL;
 static character *second_person    = NULL;
+static num_on_stage                = 0;
 %}
 
 %union {
@@ -709,7 +707,7 @@ void enter_stage(CHARACTERLIST *c)
     g_hash_table_insert(ON_STAGE, curr->name, get_character(curr->name));
     c = c->next;
     free(curr);
-    
+    num_on_stage++;
   }
 }
 
@@ -721,7 +719,9 @@ void exit_stage(CHARACTERLIST *c)
     g_hash_table_remove(ON_STAGE, curr->name);
     c = c->next;
     free(curr);
+    num_on_stage--;
   }
+  if(num_on_stage < 0) report_error("number of characters on stage is negative");
 }
 
 void exeunt_stage(void)

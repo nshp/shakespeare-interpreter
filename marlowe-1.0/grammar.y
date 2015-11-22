@@ -243,20 +243,20 @@ QUESTION_MARK {
 
 Recall:
 RECALL String StatementSymbol {
-  $$ = pop(second_person);
+  pop(second_person);
   free($1);
   free($2);
   free($3);
 }|
 RECALL error StatementSymbol {
   report_warning("string");
-  $$ = pop(second_person);
+  pop(second_person);
   free($1);
   free($3);
 }|
 RECALL String error {
   report_warning("period or exclamation mark");
-  $$ = pop(second_person);
+  pop(second_person);
   free($1);
   free($2);
 };
@@ -1040,7 +1040,7 @@ void push(character * c, int i)
   c -> stack = s;
 }
 
-int pop(character * c)
+void pop(character * c)
 {
 #ifdef DEBUG
   fprintf(stderr, "Attempting to pop a value off of %s's stack.\n", c->name);
@@ -1052,7 +1052,7 @@ int pop(character * c)
     next = c->stack->next;
     free(c->stack);
     c->stack = next;
-    return i;
+    c->num = i;
   }
   report_error("character has no stack.");
 }

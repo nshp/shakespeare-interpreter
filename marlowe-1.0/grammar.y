@@ -47,13 +47,11 @@ USA.
 /* Global variables local to this file */
 GHashTable *CHARACTERS;
 GHashTable *ON_STAGE;
-static char *current_act      = NULL;
-static char *current_scene    = NULL;
-static int num_errors;           // error counter
-static int num_warnings;         // warning counter
-static int i;                    // all-purpose counter
+static char *current_act           = NULL;
+static char *current_scene         = NULL;
 static character *first_person     = NULL;
 static character *second_person    = NULL;
+static num_on_stage                = 0;
 %}
 
 %union {
@@ -156,6 +154,7 @@ static character *second_person    = NULL;
 %type <str>        NegativeNoun
 %type <character>  Pronoun
 %type <str>        BinaryOperator
+%type <str>        UnaryOperator
 
 %start StartSymbol
 
@@ -540,7 +539,7 @@ StringSymbol: ARTICLE                                { $$ = $1; }
             ;
 Value:
 CHARACTER {
-  $$ = ($1)->num;
+  $$ = get_character($1) -> num;
 }|
 Constant {
   $$ = $1;
@@ -549,9 +548,79 @@ Pronoun {
   $$ = ($1) -> num;
 }|
 BinaryOperator Value AND Value {
-     $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
-       free($1.list);
-         free($3);
+   if($1 == "+")
+   {
+      $$ = $2 + $4;
+   }
+   else if($1 == "-")
+   {
+      $$ = $2 - $4;
+   }
+   else if($1 == "*")
+   {
+      $$ = $2 * $4;
+   }
+   else if($1 == "/")
+   {
+      if($4 == 0)
+      {
+         report_error("Integer division by zero");
+      }
+      $$ = $2 / $4;
+   }
+   else if($1 == "%")
+   {
+      if($4 == 0)
+      {
+         report_error("Integer division by zero");
+      }
+      $$ = $2 % $4;
+   }
+   free($3);
+}|
+UnaryOperator Value {
+   if($1 == "2")
+   {
+      $$ = $2 * 2;
+   }
+   else if($1 == "^2")
+   {
+      $$ = $2 * $2;
+   }
+   else if($1 == "^3")
+   {
+      $$ = $2 * $2 * $2;
+   }
+   else if($1 == "sqrt")
+   {
+      if($2 < 0)
+      {
+         report_error("Negative square root");
+      }
+      // TODO: Add sqrt function
+      $$ = 0;
+   }
+   else if($1 == "!")
+   {
+      if($2 < 0)
+      {
+         report_error("Negative factorial");
+      }
+      // TODO: Add factorial function
+      $$ = 0;
+   } 
+}|
+BinaryOperator Value AND error {
+     report_error("First value in binary operation is invalid");
+}|
+BinaryOperator Value error Value {
+     report_warning("Invalid 'and' between values for binary operation");
+}|
+BinaryOperator error AND Value {
+     report_error("First value in binary operation is invalid");
+}|
+UnaryOperator error {
+   report_error("Unary operators require a value");
 };
 
 Constant:
@@ -661,6 +730,120 @@ THE_SUM_OF {
    free($1);
 };
 
+UnaryOperator:
+THE_CUBE_OF {
+   $$ = "^3";
+   free($1);
+}|
+THE_FACTORIAL_OF {
+   $$ = "!";
+   free($1);
+}|
+THE_SQUARE_OF {
+   $$ = "^2";
+   free($1);
+}|
+THE_SQUARE_ROOT_OF {
+   $$ = "sqrt";
+   free($1);
+}|
+TWICE {
+   $$ = "2";
+   free($1);
+};
+
+Statement:
+SECOND_PERSON BE Constant StatementSymbol {
+  assign_value(second_person, $3);
+  free($1);
+  free($2);
+  free($4);
+}|
+SECOND_PERSON UnarticulatedConstant StatementSymbol {
+  assign_value(second_person, $3);
+  free($1);
+  free($3);
+}|
+SECOND_PERSON BE Equality Value StatementSymbol {
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($3);
+  free($5);
+}|
+SECOND_PERSON BE Constant error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+}|
+SECOND_PERSON BE error StatementSymbol {
+  report_error("Value statements require a value");
+
+  free($1);
+  free($2);
+  free($4);
+}|
+SECOND_PERSON error Constant StatementSymbol {
+  report_warning("Value statements require a 'be' word");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($4);
+}|
+SECOND_PERSON UnarticulatedConstant error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+}|
+SECOND_PERSON error StatementSymbol {
+  report_error("Value statements require a 'be' word");
+
+  free($1);
+  free($3);
+}|
+SECOND_PERSON BE Equality Value error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($3);
+}|
+SECOND_PERSON BE Equality error StatementSymbol {
+  report_error("Value statements require a value");
+
+  free($1);
+  free($2);
+  free($3);
+  free($5);
+}|
+SECOND_PERSON BE error Value StatementSymbol {
+  report_warning("Value statements require a word that indicates equality");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($5);
+}|
+SECOND_PERSON error Equality Value StatementSymbol {
+  report_warning("Value statements require a 'be' word");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($3);
+  free($5);
+};
+
 %%
 
 void push(character * c, int i)
@@ -740,6 +923,7 @@ void initialize_character(const char *name)
 	g_hash_table_insert(CHARACTERS, name, c);
 }
 
+
 character *get_character(const char *name)
 {
   character *c = g_hash_table_lookup(CHARACTERS, name);
@@ -758,7 +942,7 @@ void enter_stage(CHARACTERLIST *c)
     g_hash_table_insert(ON_STAGE, curr->name, get_character(curr->name));
     c = c->next;
     free(curr);
-    
+    num_on_stage++;
   }
 }
 
@@ -770,7 +954,9 @@ void exit_stage(CHARACTERLIST *c)
     g_hash_table_remove(ON_STAGE, curr->name);
     c = c->next;
     free(curr);
+    num_on_stage--;
   }
+  if(num_on_stage < 0) report_error("number of characters on stage is negative");
 }
 
 void exeunt_stage(void)

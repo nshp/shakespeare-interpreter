@@ -169,7 +169,7 @@ static int comp2;
 %type <num>        Comparative
 %type <num>        Inequality
 
-%start Play 
+%start Play
 
 %%
 
@@ -221,7 +221,6 @@ SCENE_ROMAN COLON Comment error {
 SCENE_ROMAN error Comment EndSymbol {
   report_warning("colon expected.");
 };
-
 
 Title:
 String EndSymbol {
@@ -332,15 +331,17 @@ error {
   $$ = newstr("/* NO COMMENT FOUND */");
 };
 
-Line:
-CHARACTER COLON SentenceList {
+CharacterColon:
+CHARACTER COLON {
   activate_character($1);
   free($2);
+};
+
+Line:
+CharacterColon SentenceList {
 }|
-CHARACTER COLON error {
+CharacterColon error {
   report_error("sentence list");
-  free($1);
-  free($2);
 }|
 CHARACTER error SentenceList {
   report_error("colon");
@@ -464,22 +465,30 @@ IF_NOT {
   free($1);
 };
 
-EnterExit:
-LEFT_BRACKET ENTER CHARACTER RIGHT_BRACKET {
+EnterCharacter:
+ENTER CHARACTER {
   CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
-  c -> name = $3;
+  c -> name = $2;
   c -> next = NULL;
 
   enter_stage(c);
   free($1);
-  free($2);
-  free($4);
-}|
-LEFT_BRACKET ENTER CharacterList RIGHT_BRACKET {
-  enter_stage($3);
+};
+
+EnterCharacters:
+ENTER CharacterList {
+  enter_stage($2);
   free($1);
-  free($2);
-  free($4);
+};
+
+EnterExit:
+LEFT_BRACKET EnterCharacter RIGHT_BRACKET {
+  free($1);
+  free($3);
+}|
+LEFT_BRACKET EnterCharacters RIGHT_BRACKET {
+  free($1);
+  free($3);
 }|
 LEFT_BRACKET EXIT CHARACTER RIGHT_BRACKET {
   CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
@@ -507,28 +516,28 @@ LEFT_BRACKET EXEUNT RIGHT_BRACKET {
   free($3);
 }|
 LEFT_BRACKET ENTER error RIGHT_BRACKET {
-  report_error("character or character list");
+  report_error("[Enter <string>] requires either a character or a character list");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXIT error RIGHT_BRACKET {
-  report_error("character");
+  report_error("[Exit <string>] requires a character");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXEUNT error RIGHT_BRACKET {
-  report_error("character list or nothing");
+  report_error("[Exeunt <string>] requires character list or nothing");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET error RIGHT_BRACKET {
-  report_error("'enter', 'exit' or 'exeunt'");
+  report_error("[<string>] requires either 'enter', 'exit' or 'exeunt'");
 
   free($1);
   free($3);
@@ -829,36 +838,24 @@ TWICE {
 
 Statement:
 SECOND_PERSON BE Constant StatementSymbol {
-#ifdef DEBUG
-  fprintf(stderr, "Thing 1\n");
-#endif
   assign_value(second_person, $3);
   free($1);
   free($2);
   free($4);
 }|
 SECOND_PERSON UnarticulatedConstant StatementSymbol {
-#ifdef DEBUG
-  fprintf(stderr, "Thing 2\n");
-#endif
   activate_character(NULL);
   assign_value(second_person, $3);
   free($1);
   free($3);
 }|
 SECOND_PERSON BE Equality Value StatementSymbol {
-#ifdef DEBUG
-  fprintf(stderr, "Thing 3\n");
-#endif
   assign_value(second_person, $4);
   free($1);
   free($2);
   free($5);
 }|
 SECOND_PERSON BE Constant error {
-#ifdef DEBUG
-  fprintf(stderr, "Thing 4\n");
-#endif
   report_warning("Value statements require line ending character");
   assign_value(second_person, $3);
   free($1);
@@ -872,9 +869,6 @@ SECOND_PERSON BE error StatementSymbol {
   free($4);
 }|
 SECOND_PERSON error Constant StatementSymbol {
-#ifdef DEBUG
-  fprintf(stderr, "Thing 5\n");
-#endif
   report_warning("Value statements require a 'be' word");
 
   assign_value(second_person, $3);
@@ -1190,17 +1184,15 @@ void exeunt_stage(void)
 
 bool is_on_stage(const char *name)
 {
-  return (g_hash_table_contains(ON_STAGE, name));
+  return (bool)g_hash_table_contains(ON_STAGE, name);
 }
 
 void activate_character(const char *name)
 {
   GList *names;
-  names = g_hash_table_get_keys(ON_STAGE);
 #ifdef DEBUG
   fprintf(stderr, "Activating characters.\n");
 #endif
-  name = (char*)(names->next->data);
   if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
   first_person = name;
   if (num_on_stage == 2) {

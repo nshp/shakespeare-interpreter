@@ -27,6 +27,7 @@ USA.
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <string.h>
 
 #include "helper.h"
 #include "strutils.h"
@@ -45,13 +46,13 @@ USA.
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
 
 /* Global variables local to this file */
-GHashTable *CHARACTERS;
-GHashTable *ON_STAGE;
-static char *current_act           = NULL;
-static char *current_scene         = NULL;
-static character *first_person     = NULL;
-static character *second_person    = NULL;
-static num_on_stage                = 0;
+static GHashTable *CHARACTERS    = NULL;
+static GHashTable *ON_STAGE      = NULL;
+static char *current_act         = NULL;
+static char *current_scene       = NULL;
+static character *first_person   = NULL;
+static character *second_person  = NULL;
+static unsigned int num_on_stage = 0;
 %}
 
 %union {
@@ -829,7 +830,7 @@ SECOND_PERSON BE Equality error StatementSymbol {
 SECOND_PERSON BE error Value StatementSymbol {
   report_warning("Value statements require a word that indicates equality");
 
-  assign_value(second_person, $3);
+  assign_value(second_person, $4);
 
   free($1);
   free($2);
@@ -880,7 +881,7 @@ NEGATIVE_ADJECTIVE {
 void push(character * c, int i)
 {
   STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
-  if (!s) exit(ERROR_OUT_OF_MEM);
+  if (!s) report_error("unable to allocate stack for character.");
   s -> num = i;
   s -> next = c -> stack;
   c -> stack = s;
@@ -897,7 +898,7 @@ int pop(character * c)
     c->stack = next;
     return i;
   }
-  exit(ERROR_NO_STACK);
+  report_error("character has no stack.");
 }
 
 int int_input(void) {
@@ -943,7 +944,6 @@ void report_error(const char *expected_symbol)
 void report_warning(const char *expected_symbol)
 {
   fprintf(stderr, "Warning at line %d: %s expected\n", yylineno, expected_symbol);
-  num_warnings++;
 }
 
 void initialize_character(const char *name)
@@ -973,8 +973,8 @@ void enter_stage(CHARACTERLIST *c)
     g_hash_table_insert(ON_STAGE, curr->name, get_character(curr->name));
     c = c->next;
     free(curr);
-    num_on_stage++;
   }
+  num_on_stage = g_hash_table_size(ON_STAGE);
 }
 
 void exit_stage(CHARACTERLIST *c)
@@ -985,9 +985,8 @@ void exit_stage(CHARACTERLIST *c)
     g_hash_table_remove(ON_STAGE, curr->name);
     c = c->next;
     free(curr);
-    num_on_stage--;
   }
-  if(num_on_stage < 0) report_error("number of characters on stage is negative");
+  num_on_stage = g_hash_table_size(ON_STAGE);
 }
 
 void exeunt_stage(void)
@@ -997,7 +996,7 @@ void exeunt_stage(void)
 
 bool is_on_stage(const char *name)
 {
-  return !g_hash_table_lookup(ON_STAGE, name);
+  return !(g_hash_table_lookup(ON_STAGE, name));
 }
 
 void activate_character(const char *name)
@@ -1007,8 +1006,18 @@ void activate_character(const char *name)
   first_person = name;
   if (num_on_stage == 2) {
     names = g_hash_table_get_keys(ON_STAGE);
-    
+    while(names != NULL) {
+      if (strcmp((char*)names->data, name))
+        second_person = get_character((char*)names->data);
+    }
+    if (!second_person) report_error("no second person on stage, yet 2 characters exist.");
   }
+}
+
+void assign_value(character *c, int num)
+{
+  if (!c) report_error("Tried to assign value to nonexisting character.");
+  c->num = num;
 }
   
 int main(void)
@@ -1018,14 +1027,7 @@ int main(void)
 #if(YYDEBUG == 1)
   yydebug = 1;
 #endif
-  if (yyparse() == 0) {
-    if (num_errors > 0) {
-      fprintf(stderr, "%d errors and %d warnings found. No code output.\n", num_errors, num_warnings);
-      exit(1);
-    } else if (num_warnings > 0) {
-      fprintf(stderr, "%d warnings found. Code may be defective.\n", num_warnings);
-    }
-  } else {
+  if (yyparse()) {
       fprintf(stderr, "Unrecognized error encountered. No code output.\n");
       exit(1);
   }

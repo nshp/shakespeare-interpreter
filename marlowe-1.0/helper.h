@@ -29,4 +29,5 @@ void activate_character(const char *name);
 void enter_stage(CHARACTERLIST *c);
 void exit_stage(CHARACTERLIST *c);
 void exeunt_stage(void);
+bool is_on_stage(const char *name);
 #endif

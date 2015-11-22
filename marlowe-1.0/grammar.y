@@ -178,27 +178,27 @@ QUESTION_MARK {
 
 Recall:
 RECALL String StatementSymbol {
-  $$ = pop(second_person);
+  $$ = pop(get_character(second_person));
   free($1);
   free($2);
   free($3);
 }|
 RECALL error StatementSymbol {
   report_warning("string");
-  $$ = pop(second_person);
+  $$ = pop(get_character(second_person));
   free($1);
   free($3);
 }|
 RECALL String error {
   report_warning("period or exclamation mark");
-  $$ = pop(second_person);
+  $$ = pop(get_character(second_person));
   free($1);
   free($2);
 };
 
 Remember:
 REMEMBER Value StatementSymbol {
-  push(second_person, $2);
+  push(get_character(second_person), $2);
   free($1);
   free($3);
 }|
@@ -209,7 +209,7 @@ REMEMBER error StatementSymbol {
 }|
 REMEMBER Value error {
   report_warning("period or exclamation mark");
-  push(second_person, $2);
+  push(get_character(second_person), $2);
   free($1);
 };
 
@@ -565,7 +565,7 @@ THE_SUM_OF {
 void push(character * c, int i)
 {
   STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
-  if (!s) exit(ERROR_OUT_OF_MEM); 
+  if (!s) exit(ERROR_OUT_OF_MEM);
   s -> num = i;
   s -> next = c -> stack;
   c -> stack = s;

@@ -1053,8 +1053,7 @@ void pop(character * c)
     free(c->stack);
     c->stack = next;
     c->num = i;
-  }
-  report_error("character has no stack.");
+  } else report_error("character has no stack.");
 }
 
 int int_input(void) {

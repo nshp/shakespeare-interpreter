@@ -62,8 +62,8 @@ static unsigned int num_on_stage = 0;
     int num;
     char **list;
   } stringlist;
-  CHARACTERLIST charlist;
-  character c;
+  struct CHARACTERLIST *charlist;
+  struct CHARACTER *c;
 }
 
 %token <str> ARTICLE

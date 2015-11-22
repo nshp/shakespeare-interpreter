@@ -46,8 +46,8 @@ USA.
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
 
 /* Global variables local to this file */
-static GHashTable *CHARACTERS    = NULL;
-static GHashTable *ON_STAGE      = NULL;
+static GHashTable *CHARACTERS;
+static GHashTable *ON_STAGE;
 static char *current_act         = NULL;
 static char *current_scene       = NULL;
 static character *first_person   = NULL;

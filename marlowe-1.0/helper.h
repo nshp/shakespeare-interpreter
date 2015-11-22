@@ -39,7 +39,7 @@ static void report_warning(const char *expected_symbol);
 void initialize_character(const char *name);
 character *get_character(const char *name);
 void push(character * c, int i);
-int pop(character * c);
+void pop(character * c);
 void activate_character(const char *name);
 void enter_stage(CHARACTERLIST *c);
 void exit_stage(CHARACTERLIST *c);

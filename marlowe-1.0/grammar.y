@@ -157,8 +157,8 @@ static int comp2;
 %type <str>        PositiveNoun
 %type <str>        NegativeNoun
 %type <c>          Pronoun
-%type <str>        BinaryOperator
-%type <str>        UnaryOperator
+%type <num>        BinaryOperator
+%type <num>        UnaryOperator
 %type <num>        Equality
 %type <num>        Conditional
 %type <str>        Adjective
@@ -641,19 +641,19 @@ Pronoun {
   $$ = ($1) -> num;
 }|
 BinaryOperator Value AND Value {
-   if($1 == "+")
+   if($1 == 0)
    {
       $$ = $2 + $4;
    }
-   else if($1 == "-")
+   else if($1 == 1)
    {
       $$ = $2 - $4;
    }
-   else if($1 == "*")
+   else if($1 == 2)
    {
       $$ = $2 * $4;
    }
-   else if($1 == "/")
+   else if($1 == 3)
    {
       if($4 == 0)
       {
@@ -661,7 +661,7 @@ BinaryOperator Value AND Value {
       }
       $$ = $2 / $4;
    }
-   else if($1 == "%")
+   else if($1 == 4)
    {
       if($4 == 0)
       {
@@ -672,19 +672,19 @@ BinaryOperator Value AND Value {
    free($3);
 }|
 UnaryOperator Value {
-   if($1 == "2")
+   if($1 == 0)
    {
       $$ = $2 * 2;
    }
-   else if($1 == "^2")
+   else if($1 == 1)
    {
       $$ = $2 * $2;
    }
-   else if($1 == "^3")
+   else if($1 == 2)
    {
       $$ = $2 * $2 * $2;
    }
-   else if($1 == "sqrt")
+   else if($1 == 3)
    {
       if($2 < 0)
       {
@@ -693,7 +693,7 @@ UnaryOperator Value {
       // TODO: Add sqrt function
       $$ = 0;
    }
-   else if($1 == "!")
+   else if($1 == 4)
    {
       if($2 < 0)
       {
@@ -710,138 +710,138 @@ BinaryOperator Value error Value {
      report_warning("Invalid 'and' between values for binary operation");
 }|
 BinaryOperator error AND Value {
-     report_error("First value in binary operation is invalid");
+  report_error("First value in binary operation is invalid");
 }|
 UnaryOperator error {
-   report_error("Unary operators require a value");
+report_error("Unary operators require a value");
 };
 
 Constant:
 ARTICLE UnarticulatedConstant {
-  $$ = $2;
-  free($1);
+$$ = $2;
+free($1);
 }|
 FIRST_PERSON_POSSESSIVE UnarticulatedConstant {
-  $$ = $2;
-  free($1);
+$$ = $2;
+free($1);
 }|
 SECOND_PERSON_POSSESSIVE UnarticulatedConstant {
-  $$ = $2;
-  free($1);
+$$ = $2;
+free($1);
 }|
 THIRD_PERSON_POSSESSIVE UnarticulatedConstant {
-  $$ = $2;
-  free($1);
+$$ = $2;
+free($1);
 }|
 NOTHING {
-  $$ = 0;
-  free($1);
+$$ = 0;
+free($1);
 };
 
 Pronoun:
 FIRST_PERSON {
-   $$ = first_person;
+$$ = first_person;
 }|
 FIRST_PERSON_REFLEXIVE {
-   $$ = first_person;
+$$ = first_person;
 }|
 SECOND_PERSON {
-   $$ = second_person;
+$$ = second_person;
 }|
 SECOND_PERSON_REFLEXIVE {
-   $$ = second_person;
+$$ = second_person;
 };
 
 UnarticulatedConstant:
 PositiveConstant {
-     $$ = $1;
+  $$ = $1;
 }|
 NegativeConstant {
-     $$ = $1;
+  $$ = $1;
 };
 
 PositiveConstant:
 PositiveNoun {
-    $$ = 1;
-    free($1);
+ $$ = 1;
+ free($1);
 }|
 POSITIVE_ADJECTIVE PositiveConstant {
-    $$ = 2*$2;
-    free($1);
+ $$ = 2*$2;
+ free($1);
 }|
 NEUTRAL_ADJECTIVE PositiveConstant {
-    $$ = 2*$2;
-    free($1);
+ $$ = 2*$2;
+ free($1);
 };
 
 PositiveNoun:
 NEUTRAL_NOUN {
-     $$ = $1;
+  $$ = $1;
 }|
 POSITIVE_NOUN {
-     $$ = $1;
+  $$ = $1;
 };
 
 NegativeConstant:
 NegativeNoun {
-    $$ = (-1);
-    free($1);
+ $$ = (-1);
+ free($1);
 }|
 NEGATIVE_ADJECTIVE NegativeConstant {
-    $$ = 2*$2;
-    free($1);
+ $$ = 2*$2;
+ free($1);
 }|
 NEUTRAL_ADJECTIVE NegativeConstant {
-    $$ = 2*$2;
-    free($1);
+ $$ = 2*$2;
+ free($1);
 };
 
 NegativeNoun:
 NEGATIVE_NOUN {
-    $$ = $1;
+ $$ = $1;
 };
 
 BinaryOperator:
 THE_DIFFERENCE_BETWEEN {
-   $$ = "-";
+   $$ = 1;
    free($1);
 }|
 THE_PRODUCT_OF {
-   $$ = "*";
+   $$ = 2;
    free($1);
 }|
 THE_QUOTIENT_BETWEEN {
-   $$ = "/";
+   $$ = 3;
    free($1);
 }|
 THE_REMAINDER_OF_THE_QUOTIENT_BETWEEN {
-   $$ = "%";
+   $$ = 4;
    free($1);
 }|
 THE_SUM_OF {
-   $$ = "+";
+   $$ = 0;
    free($1);
 };
 
 UnaryOperator:
 THE_CUBE_OF {
-   $$ = "^3";
+   $$ = 2;
    free($1);
 }|
 THE_FACTORIAL_OF {
-   $$ = "!";
+   $$ = 4;
    free($1);
 }|
 THE_SQUARE_OF {
-   $$ = "^2";
+   $$ = 1;
    free($1);
 }|
 THE_SQUARE_ROOT_OF {
-   $$ = "sqrt";
+   $$ = 3;
    free($1);
 }|
 TWICE {
-   $$ = "2";
+   $$ = 0;
    free($1);
 };
 

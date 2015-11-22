@@ -508,6 +508,18 @@ UnaryOperator Value {
       // TODO: Add factorial function
       $$ = 0;
    } 
+}|
+BinaryOperator Value AND error {
+     report_error("First value in binary operation is invalid");
+}|
+BinaryOperator Value error Value {
+     report_warning("Invalid 'and' between values for binary operation");
+}|
+BinaryOperator error AND Value {
+     report_error("First value in binary operation is invalid");
+}|
+UnaryOperator error {
+   report_error("Unary operators require a value");
 };
 
 Constant:

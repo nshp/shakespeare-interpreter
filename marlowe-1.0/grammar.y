@@ -153,6 +153,7 @@ static character *second_person    = NULL;
 %type <str>        NegativeNoun
 %type <character>  Pronoun
 %type <str>        BinaryOperator
+%type <str>        UnaryOperator
 
 %start StartSymbol
 
@@ -439,7 +440,7 @@ StringSymbol: ARTICLE                                { $$ = $1; }
             ;
 Value:
 CHARACTER {
-  $$ = ($1)->num;
+  $$ = get_character($1) -> num;
 }|
 Constant {
   $$ = $1;
@@ -448,9 +449,67 @@ Pronoun {
   $$ = ($1) -> num;
 }|
 BinaryOperator Value AND Value {
-     $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
-       free($1.list);
-         free($3);
+   if($1 == "+")
+   {
+      $$ = $2 + $4;
+   }
+   else if($1 == "-")
+   {
+      $$ = $2 - $4;
+   }
+   else if($1 == "*")
+   {
+      $$ = $2 * $4;
+   }
+   else if($1 == "/")
+   {
+      if($4 == 0)
+      {
+         report_error("Integer division by zero");
+      }
+      $$ = $2 / $4;
+   }
+   else if($1 == "%")
+   {
+      if($4 == 0)
+      {
+         report_error("Integer division by zero");
+      }
+      $$ = $2 % $4;
+   }
+   free($3);
+}|
+UnaryOperator Value {
+   if($1 == "2")
+   {
+      $$ = $2 * 2;
+   }
+   else if($1 == "^2")
+   {
+      $$ = $2 * $2;
+   }
+   else if($1 == "^3")
+   {
+      $$ = $2 * $2 * $2;
+   }
+   else if($1 == "sqrt")
+   {
+      if($2 < 0)
+      {
+         report_error("Negative square root");
+      }
+      // TODO: Add sqrt function
+      $$ = 0;
+   }
+   else if($1 == "!")
+   {
+      if($4 < 0)
+      {
+         report_error("Negative factorial");
+      }
+      // TODO: Add factorial function
+      $$ = 0;
+   } 
 };
 
 Constant:
@@ -560,6 +619,27 @@ THE_SUM_OF {
    free($1);
 };
 
+UnaryOperator:
+THE_CUBE_OF {
+   $$ = "^3";
+   free($1);
+}|
+THE_FACTORIAL_OF {
+   $$ = "!";
+   free($1);
+}|
+THE_SQUARE_OF {
+   $$ = "^2";
+   free($1);
+}|
+THE_SQUARE_ROOT_OF {
+   $$ = "sqrt";
+   free($1);
+}|
+TWICE {
+   $$ = "2";
+   free($1);
+};
 %%
 
 void push(character * c, int i)

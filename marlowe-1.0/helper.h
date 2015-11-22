@@ -20,6 +20,22 @@ struct _CHARACTERLIST {
   CHARACTERLIST *next;
 };
 
+typedef struct _SCENE SCENE;
+typedef struct _SCENE {
+  int    num;
+  char  *code;
+  SCENE *next;
+  SCENE *prev;
+};
+
+typedef struct _ACT ACT;
+typedef struct _ACT {
+  int num;
+  SCENE *scenes;
+  ACT   *next;
+  ACT   *prev;
+};
+
 /* Local function prototypes */
 static void report_error(const char *expected_symbol);
 static void report_warning(const char *expected_symbol);

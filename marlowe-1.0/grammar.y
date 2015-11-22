@@ -190,6 +190,7 @@ ACT_ROMAN error Comment EndSymbol {
 
 Play:
 Title CharacterDeclarationList Act {
+
   //free($2.list);
 }|
 Play Act |
@@ -262,6 +263,11 @@ RECALL String error {
 };
 
 Remember:
+REMEMBER FIRST_PERSON StatementSymbol {
+   push(second_person, (second_person)-> num);
+   free($1);
+   free($3);
+}|
 REMEMBER Value StatementSymbol {
   push(second_person, $2);
   free($1);
@@ -1110,7 +1116,9 @@ void report_error(const char *expected_symbol)
 
 void report_warning(const char *expected_symbol)
 {
+  #ifdef DEBUG
   fprintf(stderr, "Warning at line %d: %s expected\n", yylineno, expected_symbol);
+  #endif
 }
 
 void initialize_character(const char *name)

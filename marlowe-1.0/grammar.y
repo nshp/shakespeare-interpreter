@@ -53,6 +53,8 @@ static char *current_scene       = NULL;
 static character *first_person   = NULL;
 static character *second_person  = NULL;
 static unsigned int num_on_stage = 0;
+static int comp1;
+static int comp2;
 %}
 
 %union {
@@ -159,7 +161,13 @@ static unsigned int num_on_stage = 0;
 %type <num>        Conditional
 %type <str>        Adjective
 %type <str>        Title
-%start Play
+%type <num>        NonnegatedComparison 
+%type <num>        Question
+%type <num>        Comparison
+%type <num>        Comparative
+%type <num>        Inequality
+
+%start Play 
 
 %%
 
@@ -898,8 +906,8 @@ SECOND_PERSON error Equality Value StatementSymbol {
 
 Equality:
 AS Adjective AS {
-   //TODO: Add equality functionality
-   $$ = 0;
+   $$ = (comp1 == comp2);
+
    free($1);
    free($2);
    free($3);
@@ -913,6 +921,78 @@ AS Adjective error {
 error Adjective AS {
    report_error("Equality requires first 'as'");
 };
+
+Question:
+BE Value Comparison Value QuestionSymbol {
+
+   comp1 = $2;
+   comp2 = $4;
+
+   $$ = $3;
+
+  free($1);
+  free($5);
+}|
+BE error Comparison Value QuestionSymbol {
+  report_error("value");
+}|
+BE Value error Value QuestionSymbol {
+  report_error("comparison");
+}|
+BE Value Comparison error QuestionSymbol {
+  report_error("value");
+};
+
+Comparison:
+NOT NonnegatedComparison {
+  $$ = (!$2);
+  free($1);
+}|
+NonnegatedComparison {
+  $$ = $1;
+};
+
+NonnegatedComparison:
+Equality {
+  $$ = $1;
+}|
+Inequality {
+  $$ = $1;
+};
+
+Inequality:
+Comparative THAN {
+  $$ = $1;
+  free($2);
+}|
+Comparative error {
+  report_warning("Comparative statements require a 'than' statement");
+  $$ = $1;
+};
+
+Comparative:
+NegativeComparative {
+  $$ = comp1 < comp2;
+}|
+PositiveComparative {
+  $$ = comp1 > comp2;
+};
+
+PositiveComparative:
+POSITIVE_COMPARATIVE
+|
+MORE POSITIVE_ADJECTIVE
+|
+LESS NEGATIVE_ADJECTIVE
+;
+
+NegativeComparative:
+NEGATIVE_COMPARATIVE
+|
+MORE NEGATIVE_ADJECTIVE
+|
+LESS POSITIVE_ADJECTIVE
+;
 
 Adjective:
 POSITIVE_ADJECTIVE {

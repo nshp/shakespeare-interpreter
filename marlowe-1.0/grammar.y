@@ -1128,7 +1128,7 @@ void initialize_character(const char *name)
 character *get_character(const char *name)
 {
 #ifdef DEBUG
-  fprintf("Getting %s from the hash table.\n", name);
+  fprintf(stderr, "Getting %s from the hash table.\n", name);
 #endif
   character *c = g_hash_table_lookup(CHARACTERS, name);
   if (!c) report_error(strcat(name, " does not exist"));
@@ -1144,7 +1144,7 @@ void enter_stage(CHARACTERLIST *c)
   while (c != NULL) {
     curr = c;
 #ifdef DEBUG
-    printf("%s has entered the stage.\n", curr->name);
+    fprintf(stderr,"%s has entered the stage.\n", curr->name);
 #endif
     g_hash_table_insert(ON_STAGE, curr->name, get_character(curr->name));
     c = c->next;
@@ -1159,7 +1159,7 @@ void exit_stage(CHARACTERLIST *c)
   while(c != NULL) {
     curr = c;
 #ifdef DEBUG
-    printf("%s has left the stage.\n", curr->name);
+    fprintf(stderr,"%s has left the stage.\n", curr->name);
 #endif
     g_hash_table_remove(ON_STAGE, curr->name);
     c = c->next;
@@ -1211,7 +1211,7 @@ void assign_value(character *c, int num)
   if (!c) report_error("Tried to assign value to non-existent character.");
   c->num = num;
 #ifdef DEBUG
-  printf("%s now has value %d\n", c->name, c->num);
+  fprintf(stderr, "%s now has value %d\n", c->name, c->num);
 #endif
 }
 

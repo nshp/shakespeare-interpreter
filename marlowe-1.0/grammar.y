@@ -169,7 +169,7 @@ static int comp2;
 %type <num>        Comparative
 %type <num>        Inequality
 
-%start Play 
+%start Play
 
 %%
 
@@ -227,19 +227,6 @@ error CharacterDeclarationList Act {
   report_warning("title");
   //free($2.list);
 };
-
-Scene: SceneHeader SceneContents;
-
-SceneContents: EnterExit | Line | SceneContents EnterExit | SceneContents Line;
-SceneHeader:
-SCENE_ROMAN COLON Comment EndSymbol |
-SCENE_ROMAN COLON Comment error {
-  report_warning("period or exclamation mark expected.");
-}|
-SCENE_ROMAN error Comment EndSymbol {
-  report_warning("colon expected.");
-};
-
 
 Title:
 String EndSymbol {
@@ -350,15 +337,17 @@ error {
   $$ = newstr("/* NO COMMENT FOUND */");
 };
 
-Line:
-CHARACTER COLON SentenceList {
+CharacterColon:
+CHARACTER COLON {
   activate_character($1);
   free($2);
+};
+
+Line:
+CharacterColon SentenceList {
 }|
-CHARACTER COLON error {
+CharacterColon error {
   report_error("sentence list");
-  free($1);
-  free($2);
 }|
 CHARACTER error SentenceList {
   report_error("colon");
@@ -482,22 +471,30 @@ IF_NOT {
   free($1);
 };
 
-EnterExit:
-LEFT_BRACKET ENTER CHARACTER RIGHT_BRACKET {
+EnterCharacter:
+ENTER CHARACTER {
   CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
-  c -> name = $3;
+  c -> name = $2;
   c -> next = NULL;
 
   enter_stage(c);
   free($1);
-  free($2);
-  free($4);
-}|
-LEFT_BRACKET ENTER CharacterList RIGHT_BRACKET {
-  enter_stage($3);
+};
+
+EnterCharacters:
+ENTER CharacterList {
+  enter_stage($2);
   free($1);
-  free($2);
-  free($4);
+};
+
+EnterExit:
+LEFT_BRACKET EnterCharacter RIGHT_BRACKET {
+  free($1);
+  free($3);
+}|
+LEFT_BRACKET EnterCharacters RIGHT_BRACKET {
+  free($1);
+  free($3);
 }|
 LEFT_BRACKET EXIT CHARACTER RIGHT_BRACKET {
   CHARACTERLIST * c = malloc(sizeof(CHARACTERLIST));
@@ -858,11 +855,10 @@ SECOND_PERSON UnarticulatedConstant StatementSymbol {
   free($3);
 }|
 SECOND_PERSON BE Equality Value StatementSymbol {
-  assign_value(second_person, $3);
+  assign_value(second_person, $4);
 
   free($1);
   free($2);
-  free($3);
   free($5);
 }|
 SECOND_PERSON BE Constant error {
@@ -1159,22 +1155,19 @@ void exeunt_stage(void)
 
 bool is_on_stage(const char *name)
 {
-  return !(g_hash_table_lookup(ON_STAGE, name));
+  return (bool)g_hash_table_contains(ON_STAGE, name);
 }
 
 void activate_character(const char *name)
 {
   GList *names;
-  puts("SUCK IT\n");
   if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
   first_person = name;
   if (num_on_stage == 2) {
     names = g_hash_table_get_keys(ON_STAGE);
     while(names != NULL) {
-      printf("set second_person to %s\n", (char*)names->data);
-      if (strcmp((char*)names->data, name)) {
+      if (strcmp((char*)names->data, name))
         second_person = get_character((char*)names->data);
-        }
       names = names->next;
     }
     if (!second_person) report_error("no second person on stage, yet 2 characters exist.");

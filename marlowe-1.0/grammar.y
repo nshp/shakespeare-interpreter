@@ -46,8 +46,8 @@ USA.
 #define INDENT (strpad(newstr(""), INDENTATION_SIZE, ' '))
 
 /* Global variables local to this file */
-static GHashTable *CHARACTERS    = NULL;
-static GHashTable *ON_STAGE      = NULL;
+static GHashTable *CHARACTERS;
+static GHashTable *ON_STAGE;
 static char *current_act         = NULL;
 static char *current_scene       = NULL;
 static character *first_person   = NULL;
@@ -64,6 +64,8 @@ static int comp2;
     int num;
     char **list;
   } stringlist;
+  struct CHARACTERLIST *charlist;
+  struct CHARACTER *c;
 }
 
 %token <str> ARTICLE
@@ -135,9 +137,9 @@ static int comp2;
 %token <str> NONMATCH
 
 
-/*%type <character>  CharacterDeclaration
-%type <charlist>   CharacterDeclarationList*/
-%type <CHARACTERLIST> CharacterList
+/*%type <char>  CharacterDeclaration */
+/*%type <charlist>   CharacterDeclarationList*/
+%type <charlist> CharacterList
 %type <str>        Comment
 %type <str>        EnterExit
 %type <str>        StatementSymbol
@@ -154,7 +156,7 @@ static int comp2;
 %type <num>        NegativeConstant
 %type <str>        PositiveNoun
 %type <str>        NegativeNoun
-%type <character>  Pronoun
+%type <c>          Pronoun
 %type <str>        BinaryOperator
 %type <str>        UnaryOperator
 %type <num>        Equality
@@ -225,6 +227,19 @@ error CharacterDeclarationList Act {
   report_warning("title");
   //free($2.list);
 };
+
+Scene: SceneHeader SceneContents;
+
+SceneContents: EnterExit | Line | SceneContents EnterExit | SceneContents Line;
+SceneHeader:
+SCENE_ROMAN COLON Comment EndSymbol |
+SCENE_ROMAN COLON Comment error {
+  report_warning("period or exclamation mark expected.");
+}|
+SCENE_ROMAN error Comment EndSymbol {
+  report_warning("colon expected.");
+};
+
 
 Title:
 String EndSymbol {
@@ -1102,7 +1117,6 @@ void initialize_character(const char *name)
 	g_hash_table_insert(CHARACTERS, name, c);
 }
 
-
 character *get_character(const char *name)
 {
   character *c = g_hash_table_lookup(CHARACTERS, name);
@@ -1140,6 +1154,7 @@ void exit_stage(CHARACTERLIST *c)
 void exeunt_stage(void)
 {
   g_hash_table_destroy(ON_STAGE);
+  ON_STAGE = NULL;
 }
 
 bool is_on_stage(const char *name)

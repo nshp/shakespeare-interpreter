@@ -350,7 +350,7 @@ CHARACTER error SentenceList {
 
 InOut:
 OpenYour HEART StatementSymbol {
-  printf("%d", second_person->num);
+  fprintf(stdout,"%d", second_person->num);
   free($2);
   free($3);
 }|
@@ -378,7 +378,7 @@ OpenYour MIND StatementSymbol {
 }|
 OpenYour error StatementSymbol {
   report_error("'mind' or 'heart'");
-  printf("%d", second_person->num);
+  fprintf(stdout,"%d", second_person->num);
   free($3);
 }|
 SPEAK error MIND StatementSymbol {
@@ -1046,13 +1046,12 @@ void pop(character * c)
   fprintf(stderr, "Attempting to pop a value off of %s's stack.\n", c->name);
 #endif
   int i;
-  STACKNODE *next;
+  STACKNODE *curr;
   if (c->stack != NULL) {
-    i = c->stack->num;
-    next = c->stack->next;
-    free(c->stack);
-    c->stack = next;
-    c->num = i;
+    curr     = c->stack;
+    c->num   = curr->num;
+    c->stack = curr->next;
+    free(curr);
   } else report_error("character has no stack.");
 }
 

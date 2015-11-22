@@ -525,28 +525,28 @@ LEFT_BRACKET EXEUNT RIGHT_BRACKET {
   free($3);
 }|
 LEFT_BRACKET ENTER error RIGHT_BRACKET {
-  report_error("character or character list");
+  report_error("[Enter <string>] requires either a character or a character list");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXIT error RIGHT_BRACKET {
-  report_error("character");
+  report_error("[Exit <string>] requires a character");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET EXEUNT error RIGHT_BRACKET {
-  report_error("character list or nothing");
+  report_error("[Exeunt <string>] requires character list or nothing");
 
   free($1);
   free($2);
   free($4);
 }|
 LEFT_BRACKET error RIGHT_BRACKET {
-  report_error("'enter', 'exit' or 'exeunt'");
+  report_error("[<string>] requires either 'enter', 'exit' or 'exeunt'");
 
   free($1);
   free($3);

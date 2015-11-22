@@ -29,13 +29,4 @@ void enter_stage(CHARACTERLIST *c);
 void exit_stage(CHARACTERLIST *c);
 void exeunt_stage(void);
 
-/* Global variables local to this file */
-const  GHashTable *CHARACTERS;
-static GHashTable *ON_STAGE;
-static char *current_act = NULL;
-static char *current_scene = NULL;
-static int num_errors = 0;           // error counter
-static int num_warnings = 0;         // warning counter
-static int i;                        // all-purpose counter
-
 #endif

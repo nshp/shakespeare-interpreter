@@ -3,11 +3,10 @@
 
 /* Typedefs */
 #define bool int
-typedef struct _STACKNODE STACKNODE;
-struct _STACKNODE {
+typedef struct STACKNODE {
 	int num;
-	STACKNODE *next;
-};
+	struct STACKNODE *next;
+} STACKNODE;
 
 typedef struct CHARACTER {
 	int num;

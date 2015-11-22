@@ -458,7 +458,7 @@ OPEN error {
 SentenceList: Sentence | SentenceList Sentence;
 
 /* TODO */
-UnconditionalSentence: InOut | Recall | Remember;
+UnconditionalSentence: InOut | Recall | Remember | Statement;
 
 /* TODO */
 Sentence: UnconditionalSentence;
@@ -1085,13 +1085,17 @@ bool is_on_stage(const char *name)
 void activate_character(const char *name)
 {
   GList *names;
+  puts("SUCK IT\n");
   if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
   first_person = name;
   if (num_on_stage == 2) {
     names = g_hash_table_get_keys(ON_STAGE);
     while(names != NULL) {
-      if (strcmp((char*)names->data, name))
+      printf("set second_person to %s\n", (char*)names->data);
+      if (strcmp((char*)names->data, name)) {
         second_person = get_character((char*)names->data);
+        }
+      names = names->next;
     }
     if (!second_person) report_error("no second person on stage, yet 2 characters exist.");
   }
@@ -1102,7 +1106,7 @@ void assign_value(character *c, int num)
   if (!c) report_error("Tried to assign value to nonexisting character.");
   c->num = num;
 }
-  
+
 int main(void)
 {
   CHARACTERS = g_hash_table_new(g_str_hash, g_str_equal);

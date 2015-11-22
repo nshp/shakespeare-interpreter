@@ -32,3 +32,4 @@ int yylex(void);
 
 extern int yylineno;
 extern char *yytext;
+extern FILE *yyin;

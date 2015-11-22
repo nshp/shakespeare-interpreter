@@ -163,7 +163,7 @@ static int comp2;
 %type <num>        Conditional
 %type <str>        Adjective
 %type <str>        Title
-%type <num>        NonnegatedComparison 
+%type <num>        NonnegatedComparison
 %type <num>        Question
 %type <num>        Comparison
 %type <num>        Comparative
@@ -356,7 +356,6 @@ CHARACTER error SentenceList {
 
 InOut:
 OpenYour HEART StatementSymbol {
-  printf("%d", second_person->num);
   free($2);
   free($3);
 }|
@@ -416,7 +415,6 @@ LISTEN_TO SECOND_PERSON_POSSESSIVE error StatementSymbol {
 }|
 OpenYour HEART error {
   report_warning("period or exclamation mark");
-  printf("%d", second_person->num);
   free($2);
 }|
 SPEAK SECOND_PERSON_POSSESSIVE MIND error {
@@ -781,7 +779,7 @@ POSITIVE_NOUN {
 
 NegativeConstant:
 NegativeNoun {
- $$ = (-1);
+ $$ = -1;
  free($1);
 }|
 NEGATIVE_ADJECTIVE NegativeConstant {
@@ -850,7 +848,7 @@ SECOND_PERSON BE Constant StatementSymbol {
   free($4);
 }|
 SECOND_PERSON UnarticulatedConstant StatementSymbol {
-  assign_value(second_person, $3);
+  assign_value(second_person, $2);
   free($1);
   free($3);
 }|
@@ -1180,13 +1178,17 @@ void assign_value(character *c, int num)
   c->num = num;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
   CHARACTERS = g_hash_table_new(g_str_hash, g_str_equal);
   ON_STAGE   = g_hash_table_new(g_str_hash, g_str_equal);
 #if(YYDEBUG == 1)
   yydebug = 1;
 #endif
+  if (argc > 1)
+    yyin = fopen(argv[1],"r");
+  else
+    yyin = stdin;
   if (yyparse()) {
       fprintf(stderr, "Unrecognized error encountered. No code output.\n");
       exit(1);

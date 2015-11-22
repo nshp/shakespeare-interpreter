@@ -9,7 +9,7 @@ struct _STACKNODE {
 	STACKNODE *next;
 };
 
-typedef struct {
+typedef struct CHARACTER {
 	int num;
 	STACKNODE *stack;
 } character;

@@ -650,6 +650,99 @@ TWICE {
    $$ = "2";
    free($1);
 };
+
+Statement:
+SECOND_PERSON BE Constant StatementSymbol {
+  assign_value(second_person, $3);
+  free($1);
+  free($2);
+  free($4);
+}|
+SECOND_PERSON UnarticulatedConstant StatementSymbol {
+  assign_value(second_person, $3);
+  free($1);
+  free($3);
+}|
+SECOND_PERSON BE Equality Value StatementSymbol {
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($3);
+  free($5);
+}|
+SECOND_PERSON BE Constant error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+}|
+SECOND_PERSON BE error StatementSymbol {
+  report_error("Value statements require a value");
+
+  free($1);
+  free($2);
+  free($4);
+}|
+SECOND_PERSON error Constant StatementSymbol {
+  report_warning("Value statements require a 'be' word");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($4);
+}|
+SECOND_PERSON UnarticulatedConstant error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+}|
+SECOND_PERSON error StatementSymbol {
+  report_error("Value statements require a 'be' word");
+
+  free($1);
+  free($3);
+}|
+SECOND_PERSON BE Equality Value error {
+  report_warning("Value statements require line ending character");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($3);
+}|
+SECOND_PERSON BE Equality error StatementSymbol {
+  report_error("Value statements require a value");
+
+  free($1);
+  free($2);
+  free($3);
+  free($5);
+}|
+SECOND_PERSON BE error Value StatementSymbol {
+  report_warning("Value statements require a word that indicates equality");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($2);
+  free($5);
+}|
+SECOND_PERSON error Equality Value StatementSymbol {
+  report_warning("Value statements require a 'be' word");
+
+  assign_value(second_person, $3);
+
+  free($1);
+  free($3);
+  free($5);
+};
+
 %%
 
 void push(character * c, int i)
@@ -700,6 +793,7 @@ void initialize_character(const char *name)
   c->stack     = NULL;
 	g_hash_table_insert(CHARACTERS, name, c);
 }
+
 
 character *get_character(const char *name)
 {

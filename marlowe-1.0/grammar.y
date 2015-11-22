@@ -49,6 +49,8 @@ static char *current_scene    = NULL;
 static int num_errors;           // error counter
 static int num_warnings;         // warning counter
 static int i;                    // all-purpose counter
+static char *first_person     = NULL;
+static char *second_person    = NULL;
 %}
 
 %union {
@@ -261,6 +263,29 @@ error {
   report_warning("comment");
   $$ = newstr("/* NO COMMENT FOUND */");
 };
+
+Line:
+CHARACTER COLON SentenceList {
+  activate_character($1);
+  free($2);
+}|
+CHARACTER COLON error {
+  report_error("sentence list");
+  free($1);
+  free($2);
+}|
+CHARACTER error SentenceList {
+  report_error("colon");
+  free($1);
+};
+
+SentenceList: Sentence | SentenceList Sentence;
+
+/* TODO */
+UnconditionalSentence: Recall | Remember;
+
+/* TODO */
+Sentence: UnconditionalSentence;
 
 EnterExit:
 LEFT_BRACKET ENTER CHARACTER RIGHT_BRACKET {

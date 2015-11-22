@@ -19,21 +19,19 @@ typedef struct CHARACTERLIST {
   struct CHARACTERLIST *next;
 } CHARACTERLIST;
 
-typedef struct _SCENE SCENE;
-typedef struct _SCENE {
+typedef struct SCENE {
   int    num;
   char  *code;
-  SCENE *next;
-  SCENE *prev;
-};
+  struct SCENE *next;
+  struct SCENE *prev;
+} SCENE;
 
-typedef struct _ACT ACT;
-typedef struct _ACT {
+typedef struct ACT {
   int num;
   SCENE *scenes;
-  ACT   *next;
-  ACT   *prev;
-};
+  struct ACT *next;
+  struct ACT *prev;
+} ACT;
 
 /* Local function prototypes */
 static void report_error(const char *expected_symbol);

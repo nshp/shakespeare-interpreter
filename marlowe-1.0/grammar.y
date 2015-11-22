@@ -142,7 +142,6 @@ static unsigned int num_on_stage = 0;
 %type <str>        String
 %type <str>        StringSymbol
 %type <num>        Value
-%type <str>        StartSymbol
 %type <str>        EndSymbol
 %type <str>        QuestionSymbol
 %type <num>        Recall
@@ -157,16 +156,56 @@ static unsigned int num_on_stage = 0;
 %type <str>        BinaryOperator
 %type <str>        UnaryOperator
 %type <num>        Equality
+%type <num>        Conditional
 %type <str>        Adjective
-%start StartSymbol
+%type <str>        Title
+%start Play
 
 %%
 
-StartSymbol:
-CharacterDeclarationList {
+Act: ActHeader Scene | Act Scene;
 
-}
+ActHeader: ACT_ROMAN COLON Comment EndSymbol {
+  free($2);
+  free($4);
+}|
+ACT_ROMAN COLON Comment error {
+  report_warning("period or exclamation mark");
+  free($2);
+}|
+ACT_ROMAN error Comment EndSymbol {
+  report_warning("colon");
+  free($4);
+};
 
+Play:
+Title CharacterDeclarationList Act {
+  //free($2.list);
+}|
+Play Act |
+Title CharacterDeclarationList error {
+  report_error("act");
+  /*
+  free($2.list[0]);
+  free($2.list[1]);
+  free($2.list);
+  */
+}|
+Title error Act {
+  report_error("character declaration list");
+  free($1);
+}|
+error CharacterDeclarationList Act {
+  report_warning("title");
+  //free($2.list);
+};
+
+Title:
+String EndSymbol {
+// TODO: put this somewhere?
+  $$ = $1;
+  free($2);
+};
 
 EndSymbol:
 QuestionSymbol {
@@ -386,10 +425,21 @@ OPEN error {
 SentenceList: Sentence | SentenceList Sentence;
 
 /* TODO */
-UnconditionalSentence: Recall | Remember;
+UnconditionalSentence: InOut | Recall | Remember;
 
 /* TODO */
 Sentence: UnconditionalSentence;
+
+Conditional:
+IF_SO {
+  $$ = truth_flag;
+  free($1);
+}|
+IF_NOT {
+  truth_flag = !truth_flag;
+  $$ = truth_flag;
+  free($1);
+};
 
 EnterExit:
 LEFT_BRACKET ENTER CHARACTER RIGHT_BRACKET {

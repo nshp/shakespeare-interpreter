@@ -501,7 +501,7 @@ UnaryOperator Value {
    }
    else if($1 == "!")
    {
-      if($4 < 0)
+      if($2 < 0)
       {
          report_error("Negative factorial");
       }

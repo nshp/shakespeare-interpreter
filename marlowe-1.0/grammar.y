@@ -350,7 +350,7 @@ CHARACTER error SentenceList {
 
 InOut:
 OpenYour HEART StatementSymbol {
-  printf("%d\n", second_person->num);
+  printf("%d", second_person->num);
   free($2);
   free($3);
 }|
@@ -378,7 +378,7 @@ OpenYour MIND StatementSymbol {
 }|
 OpenYour error StatementSymbol {
   report_error("'mind' or 'heart'");
-  printf("%d\n", second_person->num);
+  printf("%d", second_person->num);
   free($3);
 }|
 SPEAK error MIND StatementSymbol {

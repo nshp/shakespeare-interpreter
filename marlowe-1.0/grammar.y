@@ -155,7 +155,8 @@ static num_on_stage                = 0;
 %type <character>  Pronoun
 %type <str>        BinaryOperator
 %type <str>        UnaryOperator
-
+%type <num>        Equality
+%type <str>        Adjective
 %start StartSymbol
 
 %%
@@ -798,7 +799,7 @@ SECOND_PERSON error Constant StatementSymbol {
 SECOND_PERSON UnarticulatedConstant error {
   report_warning("Value statements require line ending character");
 
-  assign_value(second_person, $3);
+  assign_value(second_person, $2);
 
   free($1);
 }|
@@ -811,7 +812,7 @@ SECOND_PERSON error StatementSymbol {
 SECOND_PERSON BE Equality Value error {
   report_warning("Value statements require line ending character");
 
-  assign_value(second_person, $3);
+  assign_value(second_person, $4);
 
   free($1);
   free($2);
@@ -843,6 +844,36 @@ SECOND_PERSON error Equality Value StatementSymbol {
   free($3);
   free($5);
 };
+
+Equality:
+AS Adjective AS {
+   //TODO: Add equality functionality
+   $$ = 0;
+   free($1);
+   free($2);
+   free($3);
+}|
+AS error AS {
+   report_error("Equality requires an adjective.");
+}|
+AS Adjective error {
+   report_error("Equality requires second 'as'");
+}|
+error Adjective AS {
+   report_error("Equality requires first 'as'");
+};
+
+Adjective:
+POSITIVE_ADJECTIVE {
+  $$ = $1;
+}|
+NEUTRAL_ADJECTIVE {
+  $$ = $1;
+}|
+NEGATIVE_ADJECTIVE {
+  $$ = $1;
+};
+
 
 %%
 

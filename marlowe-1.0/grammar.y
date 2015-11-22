@@ -135,8 +135,8 @@ static int comp2;
 %token <str> NONMATCH
 
 
-%type <character>  CharacterDeclaration
-%type <charlist>   CharacterDeclarationList
+/*%type <character>  CharacterDeclaration
+%type <charlist>   CharacterDeclarationList*/
 %type <CHARACTERLIST> CharacterList
 %type <str>        Comment
 %type <str>        EnterExit
@@ -186,6 +186,24 @@ ACT_ROMAN error Comment EndSymbol {
   free($4);
 };
 
+Scene: SceneHeader SceneContents;
+
+SceneContents: EnterExit | Line | SceneContents EnterExit | SceneContents Line;
+
+SceneHeader:
+SCENE_ROMAN COLON Comment EndSymbol {
+  free($2);
+  free($4);
+}|
+SCENE_ROMAN COLON Comment error {
+  report_warning("period or exclamation mark");
+  free($2);
+}|
+SCENE_ROMAN error Comment EndSymbol {
+  report_warning("colon");
+  free($4);
+};
+
 Play:
 Title CharacterDeclarationList Act {
   //free($2.list);
@@ -224,7 +242,7 @@ StatementSymbol {
 };
 QuestionSymbol:
 QUESTION_MARK {
-     $$ = $1;
+   $$ = $1;
 };
 
 Recall:
@@ -294,14 +312,14 @@ CHARACTER AND CHARACTER {
    CHARACTERLIST *s2 = (CHARACTERLIST*)malloc(sizeof(CHARACTERLIST));
    s2 -> name = $3;
    s2 -> next = s1;
-   
+
    $$ = s2;
 }|
 CHARACTER COMMA CharacterList {
   CHARACTERLIST *s = (CHARACTERLIST*)malloc(sizeof(CHARACTERLIST));
   s -> name = $1;
   s -> next = $3;
-  
+
 
   free($2);
 

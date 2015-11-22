@@ -22,6 +22,8 @@ USA.
 ***********************************************************************/
 
 %{
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -30,8 +32,9 @@ USA.
 #include "strutils.h"
 #include "telma.h"
 
-#define COMMENT_COLUMN   40  //
-#define INDENTATION_SIZE 2   // number of spaces to indent output C code
+#define COMMENT_COLUMN   40     //
+#define INDENTATION_SIZE 2      // number of spaces to indent output C code
+#define BUF_SIZE         1024   // size of input buffer(s)
 
 /* ERROR CODES */
 #define ERROR_OUT_OF_MEM   10
@@ -278,6 +281,104 @@ CHARACTER COLON error {
 }|
 CHARACTER error SentenceList {
   report_error("colon");
+  free($1);
+};
+
+InOut:
+OpenYour HEART StatementSymbol {
+  printf("%d", second_person->num);
+  free($2);
+  free($3);
+}|
+SPEAK SECOND_PERSON_POSSESSIVE MIND StatementSymbol {
+  putc(second_person->num, stdout);
+  free($1);
+  free($2);
+  free($3);
+  free($4);
+}|
+LISTEN_TO SECOND_PERSON_POSSESSIVE HEART StatementSymbol {
+  second_person->num = int_input();
+  free($1);
+  free($2);
+  free($3);
+  free($4);
+}|
+OpenYour MIND StatementSymbol {
+  second_person->num = getc(stdin);
+  if (second_person->num == EOF) {
+    second_person->num = -1;
+  }
+  free($2);
+  free($3);
+}|
+OpenYour error StatementSymbol {
+  report_error("'mind' or 'heart'");
+  free($3);
+}|
+SPEAK error MIND StatementSymbol {
+  report_warning("possessive pronoun, second person");
+  putc(second_person->num, stdout);
+  free($1);
+  free($3);
+  free($4);
+}|
+LISTEN_TO error HEART StatementSymbol {
+  report_warning("possessive pronoun, second person");
+  second_person->num = int_input();
+  free($1);
+  free($3);
+  free($4);
+}|
+SPEAK SECOND_PERSON_POSSESSIVE error StatementSymbol {
+  report_warning("'mind'");
+  putc(second_person->num, stdout);
+  free($1);
+  free($2);
+  free($4);
+}|
+LISTEN_TO SECOND_PERSON_POSSESSIVE error StatementSymbol {
+  report_warning("'heart'");
+  second_person->num = int_input();
+  free($1);
+  free($2);
+  free($4);
+}|
+OpenYour HEART error {
+  report_warning("period or exclamation mark");
+  printf("%d", second_person->num);
+  free($2);
+}|
+SPEAK SECOND_PERSON_POSSESSIVE MIND error {
+  report_warning("period or exclamation mark");
+  putc(second_person->num, stdout);
+  free($1);
+  free($2);
+  free($3);
+}|
+LISTEN_TO SECOND_PERSON_POSSESSIVE HEART error {
+  report_warning("period or exclamation mark");
+  second_person->num = int_input();
+  free($1);
+  free($2);
+  free($3);
+}|
+OpenYour MIND error {
+  report_warning("period or exclamation mark");
+  second_person->num = getc(stdin);
+  if (second_person->num == EOF) {
+    second_person->num = -1;
+  }
+  free($2);
+};
+
+OpenYour:
+OPEN SECOND_PERSON_POSSESSIVE {
+  free($1);
+  free($2);
+}|
+OPEN error {
+  report_warning("possessive pronoun, second person");
   free($1);
 };
 
@@ -583,6 +684,34 @@ int pop(character * c)
     return i;
   }
   exit(ERROR_NO_STACK);
+}
+
+int int_input(void) {
+  char buf[BUF_SIZE];
+  long lval;
+
+  fgets(buf, BUF_SIZE, stdin);
+
+  errno = 0;
+  lval = strtol(buf, NULL, 10);
+  if (lval == 0) {
+    switch (errno) {
+    case EINVAL:
+      report_error("heart whispered something that was not a valid integer.");
+      break;
+    case ERANGE:
+      report_error("heart whispered an integer that was way out of range.");
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (lval < INT_MIN || lval > INT_MAX) {
+    report_error("heart whispered an integer that was out of range.");
+  }
+
+  return (int) lval;
 }
 
 int yyerror(char *s)

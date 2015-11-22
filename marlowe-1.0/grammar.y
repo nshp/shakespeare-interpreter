@@ -151,6 +151,8 @@ static char *second_person    = NULL;
 %type <num>        NegativeConstant
 %type <str>        PositiveNoun
 %type <str>        NegativeNoun
+%type <character>  Pronoun
+%type <str>        BinaryOperator
 
 %start StartSymbol
 
@@ -441,6 +443,14 @@ CHARACTER {
 }|
 Constant {
   $$ = $1;
+}|
+Pronoun {
+  $$ = get_character($1) -> num;
+}|
+BinaryOperator Value AND Value {
+     $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
+       free($1.list);
+         free($3);
 };
 
 Constant:
@@ -465,6 +475,19 @@ NOTHING {
   free($1);
 };
 
+Pronoun:
+FIRST_PERSON {
+   $$ = first_person;
+}|
+FIRST_PERSON_REFLEXIVE {
+   $$ = first_person;
+}|
+SECOND_PERSON {
+   $$ = second_person;
+}|
+SECOND_PERSON_REFLEXIVE {
+   $$ = second_person;
+};
 
 UnarticulatedConstant:
 PositiveConstant {
@@ -513,6 +536,28 @@ NEUTRAL_ADJECTIVE NegativeConstant {
 NegativeNoun:
 NEGATIVE_NOUN {
     $$ = $1;
+};
+
+BinaryOperator:
+THE_DIFFERENCE_BETWEEN {
+   $$ = "-";
+   free($1);
+}|
+THE_PRODUCT_OF {
+   $$ = "*";
+   free($1);
+}|
+THE_QUOTIENT_BETWEEN {
+   $$ = "/";
+   free($1);
+}|
+THE_REMAINDER_OF_THE_QUOTIENT_BETWEEN {
+   $$ = "%";
+   free($1);
+}|
+THE_SUM_OF {
+   $$ = "+";
+   free($1);
 };
 
 %%

@@ -297,16 +297,16 @@ SPEAK SECOND_PERSON_POSSESSIVE MIND StatementSymbol {
   free($4);
 }|
 LISTEN_TO SECOND_PERSON_POSSESSIVE HEART StatementSymbol {
-  second_person->num = int_input();
+  assign_value(second_person, int_input());
   free($1);
   free($2);
   free($3);
   free($4);
 }|
 OpenYour MIND StatementSymbol {
-  second_person->num = getc(stdin);
+  assign_value(second_person, getc(stdin));
   if (second_person->num == EOF) {
-    second_person->num = -1;
+    assign_value(second_person, -1);
   }
   free($2);
   free($3);
@@ -324,7 +324,7 @@ SPEAK error MIND StatementSymbol {
 }|
 LISTEN_TO error HEART StatementSymbol {
   report_warning("possessive pronoun, second person");
-  second_person->num = int_input();
+  assign_value(second_person, int_input());
   free($1);
   free($3);
   free($4);
@@ -338,7 +338,7 @@ SPEAK SECOND_PERSON_POSSESSIVE error StatementSymbol {
 }|
 LISTEN_TO SECOND_PERSON_POSSESSIVE error StatementSymbol {
   report_warning("'heart'");
-  second_person->num = int_input();
+  assign_value(second_person, int_input());
   free($1);
   free($2);
   free($4);
@@ -357,16 +357,16 @@ SPEAK SECOND_PERSON_POSSESSIVE MIND error {
 }|
 LISTEN_TO SECOND_PERSON_POSSESSIVE HEART error {
   report_warning("period or exclamation mark");
-  second_person->num = int_input();
+  assign_value(second_person->num, int_input());
   free($1);
   free($2);
   free($3);
 }|
 OpenYour MIND error {
   report_warning("period or exclamation mark");
-  second_person->num = getc(stdin);
+  assign_value(second_person->num, getc(stdin));
   if (second_person->num == EOF) {
-    second_person->num = -1;
+    assign_value(second_person->num, -1);
   }
   free($2);
 };

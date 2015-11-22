@@ -14,11 +14,10 @@ typedef struct {
 	STACKNODE *stack;
 } character;
 
-typedef struct _CHARACTERLIST CHARACTERLIST;
-struct _CHARACTERLIST {
+typedef struct CHARACTERLIST {
   char *name;
-  CHARACTERLIST *next;
-};
+  struct CHARACTERLIST *next;
+} CHARACTERLIST;
 
 typedef struct _SCENE SCENE;
 typedef struct _SCENE {

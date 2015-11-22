@@ -49,8 +49,8 @@ static char *current_scene    = NULL;
 static int num_errors;           // error counter
 static int num_warnings;         // warning counter
 static int i;                    // all-purpose counter
-static char *first_person     = NULL;
-static char *second_person    = NULL;
+static character *first_person     = NULL;
+static character *second_person    = NULL;
 %}
 
 %union {
@@ -178,27 +178,27 @@ QUESTION_MARK {
 
 Recall:
 RECALL String StatementSymbol {
-  $$ = pop(get_character(second_person));
+  $$ = pop(second_person);
   free($1);
   free($2);
   free($3);
 }|
 RECALL error StatementSymbol {
   report_warning("string");
-  $$ = pop(get_character(second_person));
+  $$ = pop(second_person);
   free($1);
   free($3);
 }|
 RECALL String error {
   report_warning("period or exclamation mark");
-  $$ = pop(get_character(second_person));
+  $$ = pop(second_person);
   free($1);
   free($2);
 };
 
 Remember:
 REMEMBER Value StatementSymbol {
-  push(get_character(second_person), $2);
+  push(second_person, $2);
   free($1);
   free($3);
 }|
@@ -209,7 +209,7 @@ REMEMBER error StatementSymbol {
 }|
 REMEMBER Value error {
   report_warning("period or exclamation mark");
-  push(get_character(second_person), $2);
+  push(second_person, $2);
   free($1);
 };
 
@@ -439,13 +439,13 @@ StringSymbol: ARTICLE                                { $$ = $1; }
             ;
 Value:
 CHARACTER {
-  $$ = get_character($1)->num;
+  $$ = ($1)->num;
 }|
 Constant {
   $$ = $1;
 }|
 Pronoun {
-  $$ = get_character($1) -> num;
+  $$ = ($1) -> num;
 }|
 BinaryOperator Value AND Value {
      $$ = cat5($1.list[0], $2, $1.list[1], $4, $1.list[2]);
@@ -593,8 +593,8 @@ int yyerror(char *s)
 
 void report_error(const char *expected_symbol)
 {
-  fprintf(stderr, "Error at line %d: %s expected\n", yylineno, expected_symbol);
-  num_errors++;
+  fprintf(stderr, "Error at line %d: %s\n", yylineno, expected_symbol);
+  exit(1);
 }
 
 void report_warning(const char *expected_symbol)
@@ -614,6 +614,7 @@ void initialize_character(const char *name)
 character *get_character(const char *name)
 {
   character *c = g_hash_table_lookup(CHARACTERS, name);
+  if (!c) report_error(strcat(name, " does not exist"));
   return c;
 }
 
@@ -655,7 +656,13 @@ bool is_on_stage(const char *name)
 
 void activate_character(const char *name)
 {
-  if (!is_on_stage(name)) exit(ERROR_NOT_ON_STAGE);
+  GList *names;
+  if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
+  first_person = name;
+  if (num_on_stage == 2) {
+    names = g_hash_table_get_keys(ON_STAGE);
+    
+  }
 }
   
 int main(void)

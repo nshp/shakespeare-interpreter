@@ -10,6 +10,7 @@ typedef struct STACKNODE {
 
 typedef struct CHARACTER {
 	int num;
+  char *name;
 	STACKNODE *stack;
 } character;
 

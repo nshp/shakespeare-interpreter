@@ -188,24 +188,6 @@ ACT_ROMAN error Comment EndSymbol {
   free($4);
 };
 
-Scene: SceneHeader SceneContents;
-
-SceneContents: EnterExit | Line | SceneContents EnterExit | SceneContents Line;
-
-SceneHeader:
-SCENE_ROMAN COLON Comment EndSymbol {
-  free($2);
-  free($4);
-}|
-SCENE_ROMAN COLON Comment error {
-  report_warning("period or exclamation mark");
-  free($2);
-}|
-SCENE_ROMAN error Comment EndSymbol {
-  report_warning("colon");
-  free($4);
-};
-
 Play:
 Title CharacterDeclarationList Act {
   //free($2.list);
@@ -226,6 +208,18 @@ Title error Act {
 error CharacterDeclarationList Act {
   report_warning("title");
   //free($2.list);
+};
+
+Scene: SceneHeader SceneContents;
+
+SceneContents:  Line | EnterExit | SceneContents Line | SceneContents EnterExit;
+SceneHeader:
+SCENE_ROMAN COLON Comment EndSymbol |
+SCENE_ROMAN COLON Comment error {
+  report_warning("period or exclamation mark expected.");
+}|
+SCENE_ROMAN error Comment EndSymbol {
+  report_warning("colon expected.");
 };
 
 Title:
@@ -854,16 +848,13 @@ SECOND_PERSON UnarticulatedConstant StatementSymbol {
 }|
 SECOND_PERSON BE Equality Value StatementSymbol {
   assign_value(second_person, $4);
-
   free($1);
   free($2);
   free($5);
 }|
 SECOND_PERSON BE Constant error {
   report_warning("Value statements require line ending character");
-
   assign_value(second_person, $3);
-
   free($1);
   free($2);
 }|
@@ -1037,6 +1028,9 @@ NEGATIVE_ADJECTIVE {
 
 void push(character * c, int i)
 {
+#ifdef DEBUG
+  fprintf(stderr, "Pushing %d onto %s's stack.\n", i, c->name);
+#endif
   STACKNODE *s = (STACKNODE *) malloc(sizeof(STACKNODE));
   if (!s) report_error("unable to allocate stack for character.");
   s -> num = i;
@@ -1046,6 +1040,9 @@ void push(character * c, int i)
 
 int pop(character * c)
 {
+#ifdef DEBUG
+  fprintf(stderr, "Attempting to pop a value off of %s's stack.\n", c->name);
+#endif
   int i;
   STACKNODE *next;
   if (c->stack != NULL) {
@@ -1095,6 +1092,19 @@ int yyerror(char *s)
 void report_error(const char *expected_symbol)
 {
   fprintf(stderr, "Error at line %d: %s\n", yylineno, expected_symbol);
+#ifdef DEBUG
+  GList *names = g_hash_table_get_keys(CHARACTERS);
+  GList *stage = g_hash_table_get_keys(ON_STAGE);
+  while(names != NULL) {
+    fprintf(stderr, "\t%s exists.\n", (char*)names->data);
+    names = names->next;
+  }
+  fprintf(stderr, "Actors on the stage:\n");
+  while(stage != NULL) {
+    fprintf(stderr, "\t%s is on the stage.\n", (char*)stage->data);
+    stage = stage->next;
+  }
+#endif
   exit(1);
 }
 
@@ -1105,14 +1115,21 @@ void report_warning(const char *expected_symbol)
 
 void initialize_character(const char *name)
 {
+#ifdef DEBUG
+  fprintf(stderr, "Initializing %s.\n", name);
+#endif
 	character *c = (character*)malloc(sizeof(character));
   c->num       = 0;
   c->stack     = NULL;
+  c->name      = name;
 	g_hash_table_insert(CHARACTERS, name, c);
 }
 
 character *get_character(const char *name)
 {
+#ifdef DEBUG
+  fprintf("Getting %s from the hash table.\n", name);
+#endif
   character *c = g_hash_table_lookup(CHARACTERS, name);
   if (!c) report_error(strcat(name, " does not exist"));
   return c;
@@ -1126,6 +1143,9 @@ void enter_stage(CHARACTERLIST *c)
   CHARACTERLIST *curr;
   while (c != NULL) {
     curr = c;
+#ifdef DEBUG
+    printf("%s has entered the stage.\n", curr->name);
+#endif
     g_hash_table_insert(ON_STAGE, curr->name, get_character(curr->name));
     c = c->next;
     free(curr);
@@ -1138,6 +1158,9 @@ void exit_stage(CHARACTERLIST *c)
   CHARACTERLIST *curr;
   while(c != NULL) {
     curr = c;
+#ifdef DEBUG
+    printf("%s has left the stage.\n", curr->name);
+#endif
     g_hash_table_remove(ON_STAGE, curr->name);
     c = c->next;
     free(curr);
@@ -1147,8 +1170,13 @@ void exit_stage(CHARACTERLIST *c)
 
 void exeunt_stage(void)
 {
+#ifdef DEBUG
+  fprintf(stderr, "Clearing the stage.\n");
+#endif
   g_hash_table_destroy(ON_STAGE);
-  ON_STAGE = NULL;
+  ON_STAGE      = NULL;
+  first_person  = NULL;
+  second_person = NULL;
 }
 
 bool is_on_stage(const char *name)
@@ -1159,6 +1187,9 @@ bool is_on_stage(const char *name)
 void activate_character(const char *name)
 {
   GList *names;
+#ifdef DEBUG
+  fprintf(stderr, "Activating characters.\n");
+#endif
   if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
   first_person = name;
   if (num_on_stage == 2) {
@@ -1174,8 +1205,14 @@ void activate_character(const char *name)
 
 void assign_value(character *c, int num)
 {
-  if (!c) report_error("Tried to assign value to nonexisting character.");
+#ifdef DEBUG
+  fprintf(stderr, "Attempting to assign %d to %s\n", num, c->name);
+#endif
+  if (!c) report_error("Tried to assign value to non-existent character.");
   c->num = num;
+#ifdef DEBUG
+  printf("%s now has value %d\n", c->name, c->num);
+#endif
 }
 
 int main(int argc, char **argv)

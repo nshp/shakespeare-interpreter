@@ -28,6 +28,7 @@ USA.
 #include <stdlib.h>
 #include <glib.h>
 #include <string.h>
+#include <math.h>
 
 #include "helper.h"
 #include "strutils.h"
@@ -687,8 +688,7 @@ UnaryOperator Value {
       {
          report_error("Negative square root");
       }
-      // TODO: Add sqrt function
-      $$ = 0;
+      $$ = (int)sqrt($2);
    }
    else if($1 == 4)
    {
@@ -696,8 +696,7 @@ UnaryOperator Value {
       {
          report_error("Negative factorial");
       }
-      // TODO: Add factorial function
-      $$ = 0;
+      $$ = (int) tgamma($2 + 1.0);
    } 
 }|
 BinaryOperator Value AND error {
@@ -870,7 +869,7 @@ SECOND_PERSON BE error StatementSymbol {
   report_error("Value statements require a value");
 
   free($1);
-  free($2);
+ free($2);
   free($4);
 }|
 SECOND_PERSON error Constant StatementSymbol {

@@ -933,6 +933,7 @@ SECOND_PERSON error Equality Value StatementSymbol {
 }|
 TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
   char buf[1024] = {0};
+  char *pass;
   int i = 0;
   STACKNODE *curr;
   if (first_person->stack == NULL)
@@ -941,8 +942,12 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
   do {
     buf[i++] = (char)curr->num;
   } while (i < 1023 && (curr = curr->next));
-  buf[i] = '\0';
-  printf("setting flag: %s\n", buf);
+  pass = buf + strlen(buf) + 1;
+  if (strlen(pass) < 1)
+    report_error("No password specified.");
+#ifdef DEBUG
+  fprintf(stderr, "request to set flag: '%s' with password '%s'\n", buf, pass);
+#endif
 };
 
 Equality:

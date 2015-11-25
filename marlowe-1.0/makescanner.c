@@ -108,6 +108,8 @@ int main(int argc, char *argv[])
   rules_from_file(filename, "BANNER");
   sprintf(filename, "%s/%s", include_path, "take.wordlist");
   rules_from_file(filename, "TAKE");
+  sprintf(filename, "%s/%s", include_path, "gimme.wordlist");
+  rules_from_file(filename, "GIVE_ME");
 
   /* - Single word rules */
   printf("\n /* single word rules */\n");

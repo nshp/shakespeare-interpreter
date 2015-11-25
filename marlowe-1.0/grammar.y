@@ -132,6 +132,7 @@ static int comp2;
 %token <str> WE_SHALL
 %token <str> BANNER
 %token <str> TAKE
+%token <str> GIVE_ME
 
 %token <str> ACT_ROMAN
 %token <str> SCENE_ROMAN
@@ -630,6 +631,7 @@ StringSymbol: ARTICLE                                { $$ = $1; }
 
             | TAKE                                   { $$ = $1; }
             | BANNER                                 { $$ = $1; }
+            | GIVE_ME                                { $$ = $1; }
             ;
 Value:
 CHARACTER {
@@ -937,8 +939,8 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
   char *colors;
   int i = 0;
   FILE *f;
-
   STACKNODE *curr;
+
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");
   curr = first_person->stack;
@@ -956,6 +958,43 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
     report_error(strerror(errno));
 
   fprintf(f, "%s:%s", pass, colors);
+  fclose(f);
+}|
+GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
+  char buf[1024] = {0};
+  char *pass;
+  char *line = NULL;
+  int i = 0;
+  FILE *f;
+  STACKNODE *curr;
+
+  if (first_person->stack == NULL)
+    report_error("No stack to get a banner from.");
+  curr = first_person->stack;
+  do {
+    buf[i++] = (char)curr->num;
+  } while (i < 1023 && (curr = curr->next));
+  pass = buf + strlen(buf) + 1;
+  if (strlen(pass) < 1)
+    report_error("Not enough parameters.");
+#ifdef DEBUG
+  fprintf(stderr, "Getting banner '%s' with password '%s'\n", buf, pass);
+#endif
+  if (!(f = fopen(buf, "r")))
+    report_error(strerror(errno));
+
+  i = 0;
+  if (!getline(&line, &i, f))
+    report_error("That's empty");
+
+  i = strlen(pass);
+  if (strncmp(line, pass, i) == 0
+      && line[i] == ':')
+    printf("Your banner: %s\n", line+i+1);
+  else
+    report_error("Invalid password");
+
+  free(line);
   fclose(f);
 };
 

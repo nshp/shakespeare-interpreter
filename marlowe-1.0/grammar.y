@@ -934,7 +934,10 @@ SECOND_PERSON error Equality Value StatementSymbol {
 TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
   char buf[1024] = {0};
   char *pass;
+  char *colors;
   int i = 0;
+  FILE *f;
+
   STACKNODE *curr;
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");
@@ -943,11 +946,17 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
     buf[i++] = (char)curr->num;
   } while (i < 1023 && (curr = curr->next));
   pass = buf + strlen(buf) + 1;
-  if (strlen(pass) < 1)
-    report_error("No password specified.");
+  colors = pass + strlen(pass) + 1;
+  if (strlen(pass) < 1 || strlen(colors) < 1)
+    report_error("Not enough parameters.");
 #ifdef DEBUG
-  fprintf(stderr, "request to set flag: '%s' with password '%s'\n", buf, pass);
+  fprintf(stderr, "Setting banner '%s' with password '%s' and colors '%s'\n", buf, pass, colors);
 #endif
+  if (!(f = fopen(buf, "w")))
+    report_error(strerror(errno));
+
+  fprintf(f, "%s:%s", pass, colors);
+  fclose(f);
 };
 
 Equality:

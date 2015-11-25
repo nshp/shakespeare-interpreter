@@ -54,6 +54,7 @@ static char *current_scene       = NULL;
 static character *first_person   = NULL;
 static character *second_person  = NULL;
 static unsigned int num_on_stage = 0;
+static bool truth_flag;
 static int comp1;
 static int comp2;
 %}
@@ -457,10 +458,16 @@ OPEN error {
 SentenceList: Sentence | SentenceList Sentence;
 
 /* TODO */
-UnconditionalSentence: InOut | Recall | Remember | Statement;
+UnconditionalSentence: InOut | Recall | Remember | Statement | Question;
 
 /* TODO */
-Sentence: UnconditionalSentence;
+Sentence: UnconditionalSentence |
+Conditional COMMA {
+  printf("cond: %d\n", $1);
+  free($2);
+  if ($1)
+    return yyerror("nope");
+} UnconditionalSentence;
 
 Conditional:
 IF_SO {
@@ -1018,11 +1025,10 @@ error Adjective AS {
 
 Question:
 BE Value Comparison Value QuestionSymbol {
+  comp1 = $2;
+  comp2 = $4;
 
-   comp1 = $2;
-   comp2 = $4;
-
-   $$ = $3;
+  $$ = $3;
 
   free($1);
   free($5);

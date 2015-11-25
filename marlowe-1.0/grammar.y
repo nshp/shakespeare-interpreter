@@ -463,9 +463,13 @@ UnconditionalSentence: InOut | Recall | Remember | Statement | Question;
 /* TODO */
 Sentence: UnconditionalSentence |
 Conditional COMMA {
-  printf("cond: %d\n", $1);
   free($2);
   if ($1)
+    return yyerror("nope");
+} UnconditionalSentence |
+Conditional error {
+  report_warning("comma");
+  if($1)
     return yyerror("nope");
 } UnconditionalSentence;
 

@@ -104,6 +104,10 @@ int main(int argc, char *argv[])
   rules_from_file(filename, "SECOND_PERSON_REFLEXIVE");
   sprintf(filename, "%s/%s", include_path, "third_person_possessive.wordlist");
   rules_from_file(filename, "THIRD_PERSON_POSSESSIVE");
+  sprintf(filename, "%s/%s", include_path, "banner.wordlist");
+  rules_from_file(filename, "BANNER");
+  sprintf(filename, "%s/%s", include_path, "take.wordlist");
+  rules_from_file(filename, "TAKE");
 
   /* - Single word rules */
   printf("\n /* single word rules */\n");

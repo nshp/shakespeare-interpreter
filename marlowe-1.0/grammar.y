@@ -130,6 +130,8 @@ static int comp2;
 %token <str> TWICE
 %token <str> WE_MUST
 %token <str> WE_SHALL
+%token <str> BANNER
+%token <str> TAKE
 
 %token <str> ACT_ROMAN
 %token <str> SCENE_ROMAN
@@ -138,8 +140,6 @@ static int comp2;
 %token <str> NONMATCH
 
 
-/*%type <char>  CharacterDeclaration */
-/*%type <charlist>   CharacterDeclarationList*/
 %type <charlist> CharacterList
 %type <str>        Comment
 %type <str>        EnterExit
@@ -627,6 +627,9 @@ StringSymbol: ARTICLE                                { $$ = $1; }
             | ROMAN_NUMBER                           { $$ = $1; }
 
             | NONMATCH                               { $$ = $1; }
+
+            | TAKE                                   { $$ = $1; }
+            | BANNER                                 { $$ = $1; }
             ;
 Value:
 CHARACTER {
@@ -927,6 +930,19 @@ SECOND_PERSON error Equality Value StatementSymbol {
   free($1);
   free($3);
   free($5);
+}|
+TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
+  char buf[1024] = {0};
+  int i = 0;
+  STACKNODE *curr;
+  if (first_person->stack == NULL)
+    report_error("No stack to get a banner from.");
+  curr = first_person->stack;
+  do {
+    buf[i++] = (char)curr->num;
+  } while (i < 1023 && (curr = curr->next));
+  buf[i] = '\0';
+  printf("setting flag: %s\n", buf);
 };
 
 Equality:
@@ -1050,7 +1066,6 @@ void pop(character * c)
 #ifdef DEBUG
   fprintf(stderr, "Attempting to pop a value off of %s's stack.\n", c->name);
 #endif
-  int i;
   STACKNODE *curr;
   if (c->stack != NULL) {
     curr     = c->stack;
@@ -1125,11 +1140,11 @@ void initialize_character(const char *name)
 #ifdef DEBUG
   fprintf(stderr, "Initializing %s.\n", name);
 #endif
-	character *c = (character*)malloc(sizeof(character));
-  c->num       = 0;
-  c->stack     = NULL;
-  c->name      = name;
-	g_hash_table_insert(CHARACTERS, name, c);
+  character *c = (character*)malloc(sizeof(character));
+  c->num   = 0;
+  c->stack = NULL;
+  c->name  = name;
+  g_hash_table_insert(CHARACTERS, name, c);
 }
 
 character *get_character(const char *name)
@@ -1198,7 +1213,7 @@ void activate_character(const char *name)
   fprintf(stderr, "Activating characters.\n");
 #endif
   if (!is_on_stage(name)) report_error(strcat(name, " is not on stage."));
-  first_person = name;
+  first_person = get_character(name);
   if (num_on_stage == 2) {
     names = g_hash_table_get_keys(ON_STAGE);
     while(names != NULL) {

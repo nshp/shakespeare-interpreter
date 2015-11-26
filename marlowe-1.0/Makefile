@@ -45,23 +45,14 @@ YACCFLAGS = --verbose
 CCFLAGS   = -O2 -Wall -lm `pkg-config --cflags --libs glib-2.0` -ggdb -DDEBUG=1
 LEXFLAGS  = -Cem
 
-.PHONY: all clean examples install libspl tar
-all: install examples
-
-examples: install
-	$(MAKE) -C $(EXAMPLEPATH) all
+.PHONY: all clean examples libspl tar
+all: spl libspl.a spl.h
 
 grammar.tab.h grammar.tab.c: grammar.y
 	$(YACC) $(YACCFLAGS) -d $<
 
 grammar.tab.o: grammar.tab.c grammar.tab.h telma.h
 	$(CC) $(CCFLAGS) -c $<
-
-install: spl2c libspl.a spl.h
-	mkdir -p spl/bin spl/include spl/lib
-	cp -pf spl2c spl/bin
-	cp -pf spl.h spl/include
-	cp -pf libspl.a spl/lib
 
 libspl.a: libspl.o strutils.o
 	$(AR) rc $@ $^
@@ -85,7 +76,7 @@ scanner.l: makescanner $(MAKESCANNERINCLUDE)
 scanner.o: scanner.c grammar.tab.h telma.h
 	$(CC) $(CCFLAGS) -c $<
 
-spl2c: grammar.tab.o scanner.o strutils.o
+spl: grammar.tab.o scanner.o strutils.o
 	$(CC) $^ $(CCFLAGS) -lfl -o $@
 
 strutils.o: strutils.c strutils.h
@@ -101,6 +92,6 @@ tar: clean
 
 # clean-up funtion
 clean:
-	rm -f *~ $(EDITORPATH)/*~ $(INCLUDEPATH)/*~ *.l *.o *.a core grammar.output grammar.tab.h grammar.tab.c scanner.c makescanner spl2c *.tar.gz
+	rm -f *~ $(EDITORPATH)/*~ $(INCLUDEPATH)/*~ *.l *.o *.a core grammar.output grammar.tab.h grammar.tab.c scanner.c makescanner spl *.tar.gz
 	rm -rf spl $(DISTNAME)
 	$(MAKE) -C $(EXAMPLEPATH) clean

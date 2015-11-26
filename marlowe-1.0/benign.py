@@ -18,6 +18,9 @@ with open('include/character.wordlist') as f:
 with open('include/descriptions.wordlist') as f:
     descriptions = [n.strip() for n in f.readlines()]
 
+with open('/usr/share/dict/words') as f:
+    words = [w.strip() for w in f.xreadlines() if w[:-1].isalpha()]
+
 def commafy(lst):
     if len(lst) == 1: return lst[0]
     return ", ".join(lst[:-1]) + (", and " if len(lst)>2 else " and ") + lst[-1]

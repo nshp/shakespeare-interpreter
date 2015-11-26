@@ -938,9 +938,11 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
   char buf[1024] = {0};
   char *pass;
   char *colors;
-  int i = 0;
+  int i = 4;
   FILE *f;
   STACKNODE *curr;
+
+  strcpy(buf, "flg_");
 
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");
@@ -965,9 +967,11 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
   char buf[1024] = {0};
   char *pass;
   char *line = NULL;
-  int i = 0;
+  int i = 4;
   FILE *f;
   STACKNODE *curr;
+
+  strcpy(buf, "flg_");
 
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");

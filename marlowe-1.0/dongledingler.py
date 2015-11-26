@@ -5,6 +5,8 @@ with open('include/positive_adjective.wordlist') as f:
     adj = [w.strip() for w in f.readlines()]
 with open('include/positive_noun.wordlist') as f:
     noun = [w.strip() for w in f.readlines()]
+with open('include/negative_noun.wordlist') as f:
+    neg_noun = [w.strip() for w in f.readlines()]
 
 def shake(char):
     char = ord(char)
@@ -17,6 +19,10 @@ def shake(char):
             currentPow <<= 1
 
     spl = "Remember the sum of a "
+
+    if char == 0:
+        return spl + random.choice(neg_noun) + " and a " + random.choice(noun) + "."
+
     for i in powers:
 
             if len(powers) == 1:

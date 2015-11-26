@@ -22,7 +22,7 @@ def set_flag(ip, port, flag):
 
     c.sendline("I am a title and I am awesome.\n")
 
-    c.sendline("Romeo, a young man whose trowsers are nowhere to be found.")
+    c.sendline("Romeo, a young man whose trousers are nowhere to be found.")
     c.sendline("Juliet, well, she'll just cut you.\n")
 
     c.sendline("          Act I: Total Confusion.\n")
@@ -33,7 +33,6 @@ def set_flag(ip, port, flag):
 
     for speare in colors[::-1] + ['\0'] + password[::-1] + ['\0'] + banner_id[::-1]:
         d = dongledingler.shake(speare)
-        print d
         c.sendline(' '+d)
 
     c.sendline("\nJuliet:")

@@ -39,5 +39,3 @@ def shake(char):
 
     spl = spl + "."
     return spl
-
-print shake('e')

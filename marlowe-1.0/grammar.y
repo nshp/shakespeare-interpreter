@@ -460,22 +460,16 @@ UnconditionalSentence: InOut | Recall | Remember | Statement | Question;
 Sentence: UnconditionalSentence |
 Conditional COMMA {
   free($2);
-  if (!$1)
-    return yyerror("nope");
+  if ($1) YYERROR;
 } UnconditionalSentence |
-Conditional error {
-  report_warning("comma");
-  if ($1)
-    return yyerror("nope");
-} UnconditionalSentence;
+Conditional error StatementSymbol;
 
 Conditional:
 IF_SO {
-  $$ = truth_flag;
+  $$ = !truth_flag;
   free($1);
 }|
 IF_NOT {
-  truth_flag = !truth_flag;
   $$ = truth_flag;
   free($1);
 };

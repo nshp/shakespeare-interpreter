@@ -330,12 +330,8 @@ CHARACTER COMMA CharacterList {
 };
 
 Comment:
-String {
-  $$ = cat3(newstr("/* "), $1, newstr(" */"));
-}|
-error {
+String | error {
   report_warning("comment");
-  $$ = newstr("/* NO COMMENT FOUND */");
 };
 
 CharacterColon:
@@ -560,13 +556,7 @@ PERIOD {
   $$ = $1;
 };
 
-String:
-StringSymbol {
-  $$ = $1;
-}|
-String StringSymbol {
-  $$ = cat3($1, newstr(" "), $2);
-};
+String: StringSymbol | String StringSymbol;
 
 StringSymbol: ARTICLE                                { $$ = $1; }
             | BE                                     { $$ = $1; }
@@ -1221,7 +1211,7 @@ character *get_character(const char *name)
   fprintf(stderr, "Getting %s from the hash table.\n", name);
 #endif
   character *c = g_hash_table_lookup(CHARACTERS, name);
-  if (!c) report_error(strcat(name, " does not exist"));
+  if (!c) report_error("character does not exist");
   return c;
 }
 

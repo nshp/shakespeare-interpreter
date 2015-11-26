@@ -55,8 +55,6 @@ static character *first_person   = NULL;
 static character *second_person  = NULL;
 static unsigned int num_on_stage = 0;
 static bool truth_flag;
-static int comp1;
-static int comp2;
 %}
 
 %union {
@@ -457,19 +455,17 @@ OPEN error {
 
 SentenceList: Sentence | SentenceList Sentence;
 
-/* TODO */
 UnconditionalSentence: InOut | Recall | Remember | Statement | Question;
 
-/* TODO */
 Sentence: UnconditionalSentence |
 Conditional COMMA {
   free($2);
-  if ($1)
+  if (!$1)
     return yyerror("nope");
 } UnconditionalSentence |
 Conditional error {
   report_warning("comma");
-  if($1)
+  if ($1)
     return yyerror("nope");
 } UnconditionalSentence;
 
@@ -1011,11 +1007,10 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
 
 Equality:
 AS Adjective AS {
-   $$ = (comp1 == comp2);
-
-   free($1);
-   free($2);
-   free($3);
+  $$ = '=';
+  free($1);
+  free($2);
+  free($3);
 }|
 AS error AS {
    report_error("Equality requires an adjective.");
@@ -1029,11 +1024,23 @@ error Adjective AS {
 
 Question:
 BE Value Comparison Value QuestionSymbol {
-  comp1 = $2;
-  comp2 = $4;
-
-  $$ = $3;
-
+#ifdef DEBUG
+  fprintf(stderr, "Comparing: %d %c %d\n", $2, $3, $4);
+#endif
+  switch ($3) {
+    case '=':
+        truth_flag = ($2 == $4);
+        break;
+        ;;
+    case '<':
+        truth_flag = ($2 < $4);
+        break;
+        ;;
+    case '>':
+        truth_flag = ($2 > $4);
+        break;
+        ;;
+  }
   free($1);
   free($5);
 }|
@@ -1076,10 +1083,10 @@ Comparative error {
 
 Comparative:
 NegativeComparative {
-  $$ = comp1 < comp2;
+  $$ = '<';
 }|
 PositiveComparative {
-  $$ = comp1 > comp2;
+  $$ = '>';
 };
 
 PositiveComparative:

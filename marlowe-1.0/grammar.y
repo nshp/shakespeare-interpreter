@@ -952,6 +952,7 @@ TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
 
   fprintf(f, "%s:%s", pass, colors);
   fclose(f);
+  puts("Banner received.");
 }|
 GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
   char buf[1024] = {0};

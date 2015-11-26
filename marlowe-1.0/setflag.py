@@ -37,6 +37,7 @@ def set_flag(ip, port, flag):
 
     c.sendline("\nJuliet:")
     c.sendline(" Take my flag!")
+    c.expect("Banner received.")
 
     c.sendline("\n[Exeunt]")
     c.close()

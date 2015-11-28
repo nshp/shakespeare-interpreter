@@ -1009,8 +1009,7 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
       && line[i] == ':')
     printf("Your banner: %s\n", line+i+1);
   else
-    puts("I'll let it happen.");
-    //report_error("Invalid password");
+    report_error("Invalid password");
 
   free(line);
   memset(generic_buf, 0, BUF_SIZE);

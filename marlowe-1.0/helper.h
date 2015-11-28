@@ -4,14 +4,14 @@
 /* Typedefs */
 #define bool int
 typedef struct STACKNODE {
-	int num;
-	struct STACKNODE *next;
+  int num;
+  struct STACKNODE *next;
 } STACKNODE;
 
 typedef struct CHARACTER {
-	int num;
+  int num;
   char *name;
-	STACKNODE *stack;
+  STACKNODE *stack;
 } character;
 
 typedef struct CHARACTERLIST {

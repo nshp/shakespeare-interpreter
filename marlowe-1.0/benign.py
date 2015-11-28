@@ -53,6 +53,7 @@ def benign(ip, port):
     c.sendline(characters[0] + ":")
     c.sendline(" You are as smelly as a fat flirt-gill.")
     c.sendline(" Open your heart.")
+    c.expect("-2")
 
     c.sendline("\n[Exeunt]")
     c.close()

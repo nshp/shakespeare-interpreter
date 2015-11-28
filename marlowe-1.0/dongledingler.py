@@ -9,11 +9,12 @@ with open('include/negative_noun.wordlist') as f:
     neg_noun = [w.strip() for w in f.readlines()]
 
 def shake(char):
-    char = ord(char)
+    if type(char) == str:
+        char = ord(char)
     currentPow = 1
     numberOfAdjectives = 0
     powers = []
-    while currentPow < 128:
+    while currentPow < 0xffffffff:
             if currentPow & char:
                     powers.append(currentPow)
             currentPow <<= 1
@@ -39,3 +40,9 @@ def shake(char):
 
     spl = spl + "."
     return spl
+
+if __name__ == '__main__':
+    import sys
+    print shake(0x8067580)
+    for c in sys.argv[1]:
+        print shake(c)

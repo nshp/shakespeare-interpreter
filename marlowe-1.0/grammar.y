@@ -49,11 +49,13 @@ USA.
 /* Global variables local to this file */
 static GHashTable *CHARACTERS;
 static GHashTable *ON_STAGE;
-static char *current_act         = NULL;
-static char *current_scene       = NULL;
-static character *first_person   = NULL;
-static character *second_person  = NULL;
-static unsigned int num_on_stage = 0;
+static char *title                = NULL;
+static char *current_act          = NULL;
+static char *current_scene        = NULL;
+static char generic_buf[BUF_SIZE] = {0};
+static character *first_person    = NULL;
+static character *second_person   = NULL;
+static unsigned int num_on_stage  = 0;
 static bool truth_flag;
 %}
 
@@ -216,7 +218,9 @@ Scene: SceneHeader SceneContents;
 
 SceneContents:  Line | EnterExit | SceneContents Line | SceneContents EnterExit;
 SceneHeader:
-SCENE_ROMAN COLON Comment EndSymbol |
+SCENE_ROMAN COLON Comment EndSymbol {
+  current_scene = $3;
+}|
 SCENE_ROMAN COLON Comment error {
   report_warning("period or exclamation mark expected.");
 }|
@@ -226,7 +230,7 @@ SCENE_ROMAN error Comment EndSymbol {
 
 Title:
 String EndSymbol {
-// TODO: put this somewhere?
+  title = $1;
   $$ = $1;
   free($2);
 };
@@ -556,7 +560,11 @@ PERIOD {
   $$ = $1;
 };
 
-String: StringSymbol | String StringSymbol;
+String: StringSymbol | String StringSymbol {
+  $$ = malloc(strlen($1) + strlen($2) + 1);
+  strcpy($$, $1);
+  strcat($$, $2);
+};
 
 StringSymbol: ARTICLE                                { $$ = $1; }
             | BE                                     { $$ = $1; }
@@ -632,7 +640,9 @@ Constant {
   $$ = $1;
 }|
 Pronoun {
-  $$ = ($1) -> num;
+  if (!$1)
+    report_error("Pronoun is a null pointer because your grammar is awful.");
+  $$ = $1->num;
 }|
 BinaryOperator Value AND Value {
    if($1 == 0)
@@ -896,7 +906,6 @@ SECOND_PERSON BE Equality Value error {
 
   free($1);
   free($2);
-  free($3);
 }|
 SECOND_PERSON BE Equality error StatementSymbol {
   report_error("Value statements require a value");
@@ -925,58 +934,59 @@ SECOND_PERSON error Equality Value StatementSymbol {
   free($5);
 }|
 TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {
-  char buf[1024] = {0};
   char *pass;
   char *colors;
   int i = 4;
   FILE *f;
   STACKNODE *curr;
 
-  strcpy(buf, "flg_");
+  strcpy(generic_buf, "flg_");
 
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");
   curr = first_person->stack;
   do {
-    buf[i++] = (char)curr->num;
+    generic_buf[i++] = (char)curr->num;
   } while (i < 1023 && (curr = curr->next));
-  pass = buf + strlen(buf) + 1;
+  pass = generic_buf + strlen(generic_buf) + 1;
   colors = pass + strlen(pass) + 1;
   if (strlen(pass) < 1 || strlen(colors) < 1)
     report_error("Not enough parameters.");
 #ifdef DEBUG
-  fprintf(stderr, "Setting banner '%s' with password '%s' and colors '%s'\n", buf, pass, colors);
+  fprintf(stderr, "Setting banner '%s' with password '%s' and colors '%s'\n", generic_buf, pass, colors);
 #endif
-  if (!(f = fopen(buf, "w")))
+  if (!(f = fopen(generic_buf, "w")))
     report_error(strerror(errno));
 
   fprintf(f, "%s:%s", pass, colors);
   fclose(f);
+  memset(generic_buf, 0, BUF_SIZE);
   puts("Banner received.");
 }|
 GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
-  char buf[1024] = {0};
   char *pass;
   char *line = NULL;
-  int i = 4;
+  size_t i = 4;
   FILE *f;
   STACKNODE *curr;
 
-  strcpy(buf, "flg_");
+  strcpy(generic_buf, "flg_");
 
   if (first_person->stack == NULL)
     report_error("No stack to get a banner from.");
   curr = first_person->stack;
   do {
-    buf[i++] = (char)curr->num;
-  } while (i < 1023 && (curr = curr->next));
-  pass = buf + strlen(buf) + 1;
+    generic_buf[i++] = (char)curr->num;
+  } while (i < 2047 && (curr = curr->next));
+  if (strlen(generic_buf) >= BUF_SIZE-1)
+    report_error("Password is too long.");
+  pass = generic_buf + strlen(generic_buf) + 1;
   if (strlen(pass) < 1)
     report_error("Not enough parameters.");
 #ifdef DEBUG
-  fprintf(stderr, "Getting banner '%s' with password '%s'\n", buf, pass);
+  fprintf(stderr, "Getting banner '%s' with password '%s'\n", generic_buf, pass);
 #endif
-  if (!(f = fopen(buf, "r")))
+  if (!(f = fopen(generic_buf, "r")))
     report_error(strerror(errno));
 
   i = 0;
@@ -988,9 +998,11 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
       && line[i] == ':')
     printf("Your banner: %s\n", line+i+1);
   else
-    report_error("Invalid password");
+    puts("I'll let it happen.");
+    //report_error("Invalid password");
 
   free(line);
+  memset(generic_buf, 0, BUF_SIZE);
   fclose(f);
 };
 
@@ -1135,13 +1147,13 @@ void pop(character * c)
 }
 
 int int_input(void) {
-  char buf[BUF_SIZE];
   long lval;
 
-  fgets(buf, BUF_SIZE, stdin);
+  fgets(generic_buf, BUF_SIZE, stdin);
 
   errno = 0;
-  lval = strtol(buf, NULL, 10);
+  lval = strtol(generic_buf, NULL, 10);
+  memset(generic_buf, 0, BUF_SIZE);
   if (lval == 0) {
     switch (errno) {
     case EINVAL:
@@ -1286,10 +1298,10 @@ void activate_character(const char *name)
 
 void assign_value(character *c, int num)
 {
+  if (!c) report_error("Tried to assign value to non-existent character.");
 #ifdef DEBUG
   fprintf(stderr, "Attempting to assign %d to %s\n", num, c->name);
 #endif
-  if (!c) report_error("Tried to assign value to non-existent character.");
   c->num = num;
 #ifdef DEBUG
   fprintf(stderr, "%s now has value %d\n", c->name, c->num);

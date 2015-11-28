@@ -42,7 +42,7 @@ MAKESCANNERINCLUDE = $(wildcard $(INCLUDEPATH)/*.{wordlist,metaflex})
 
 # compiler flags
 YACCFLAGS = --verbose
-CCFLAGS   = -O2 -Wall -lm `pkg-config --cflags --libs glib-2.0` -ggdb -DDEBUG=1
+CCFLAGS   = -m32 -z execstack -Wl,-z,norelro -fno-stack-protector -Wall -lm `pkg-config --cflags --libs glib-2.0` -ggdb #-DDEBUG=1
 LEXFLAGS  = -Cem
 
 .PHONY: all clean examples libspl tar

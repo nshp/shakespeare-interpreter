@@ -357,11 +357,15 @@ CHARACTER error SentenceList {
 
 InOut:
 OpenYour HEART StatementSymbol {
-  fprintf(stdout,"%d", second_person->num);
+  if (!second_person)
+    report_error("You're talking to an empty room.");
+  printf("%d", second_person->num);
   free($2);
   free($3);
 }|
 SPEAK SECOND_PERSON_POSSESSIVE MIND StatementSymbol {
+  if (!second_person)
+    report_error("You're talking to an empty room.");
   putc(second_person->num, stdout);
   free($1);
   free($2);
@@ -385,11 +389,15 @@ OpenYour MIND StatementSymbol {
 }|
 OpenYour error StatementSymbol {
   report_error("'mind' or 'heart'");
+  if (!second_person)
+    report_error("You're talking to an empty room.");
   fprintf(stdout,"%d", second_person->num);
   free($3);
 }|
 SPEAK error MIND StatementSymbol {
   report_warning("possessive pronoun, second person");
+  if (!second_person)
+    report_error("You're talking to an empty room.");
   putc(second_person->num, stdout);
   free($1);
   free($3);
@@ -404,6 +412,8 @@ LISTEN_TO error HEART StatementSymbol {
 }|
 SPEAK SECOND_PERSON_POSSESSIVE error StatementSymbol {
   report_warning("'mind'");
+  if (!second_person)
+    report_error("You're talking to an empty room.");
   putc(second_person->num, stdout);
   free($1);
   free($2);
@@ -422,6 +432,8 @@ OpenYour HEART error {
 }|
 SPEAK SECOND_PERSON_POSSESSIVE MIND error {
   report_warning("period or exclamation mark");
+  if (!second_person)
+    report_error("You're talking to an empty room.");
   putc(second_person->num, stdout);
   free($1);
   free($2);
@@ -429,14 +441,14 @@ SPEAK SECOND_PERSON_POSSESSIVE MIND error {
 }|
 LISTEN_TO SECOND_PERSON_POSSESSIVE HEART error {
   report_warning("period or exclamation mark");
-  assign_value(second_person->num, int_input());
+  assign_value(second_person, int_input());
   free($1);
   free($2);
   free($3);
 }|
 OpenYour MIND error {
   report_warning("period or exclamation mark");
-  assign_value(second_person->num, getc(stdin));
+  assign_value(second_person, getc(stdin));
   if (second_person->num == EOF) {
     assign_value(second_person->num, -1);
   }
@@ -930,7 +942,6 @@ SECOND_PERSON error Equality Value StatementSymbol {
   assign_value(second_person, $3);
 
   free($1);
-  free($3);
   free($5);
 }|
 TAKE FIRST_PERSON_POSSESSIVE BANNER StatementSymbol {

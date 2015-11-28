@@ -35,7 +35,7 @@ def get_flag(ip, port, flag_id, token):
     c.sendline("\nPrincess Leia:")
     c.sendline(" Give me your banner!")
 
-    c.expect("(FLG_[a-zA-Z0-9_]{13})")
+    c.expect("FLG[a-zA-Z0-9]{13}")
     flag = c.after
 
     c.sendline("\n[Exeunt]")
@@ -46,4 +46,4 @@ def get_flag(ip, port, flag_id, token):
     return { 'FLAG' : flag }
 
 if __name__ == "__main__":
-    print get_flag(None, None, "fJoDmOkT2GtjvxlZdbI8", "DaZBmucRorl4QjfH9LKq")
+    print get_flag(None, None, "ealPBSzE9rGin0RgZQD3", "zD3WkXSj0FlyVMvHpg4w")

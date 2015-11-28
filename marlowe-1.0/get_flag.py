@@ -46,4 +46,4 @@ def get_flag(ip, port, flag_id, token):
     return { 'FLAG' : flag }
 
 if __name__ == "__main__":
-    print get_flag(None, None, "fJoDmOkT2GtjvxlZdbI8", "DaZBmucRorl4QjfH9LKq")
+    print get_flag(None, None, "Toy4OPiwV2xg0WCnuIbm", "X9r1CDjB2EyWxQiTMSY3")

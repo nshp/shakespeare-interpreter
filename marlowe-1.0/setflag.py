@@ -50,4 +50,4 @@ def set_flag(ip, port, flag):
             }
 
 if __name__ == "__main__":
-    print set_flag(None, None, "FLG_just_testing")
+    print set_flag(None, None, "FLG_" + 'A'*13)

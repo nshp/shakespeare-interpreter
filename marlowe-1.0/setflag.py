@@ -8,9 +8,9 @@ import pexpect.fdpexpect
 
 POSSIBILITIES = string.ascii_uppercase + string.digits + string.ascii_lowercase
 
-def set_flag(ip, port, flag):
-    banner_id = random.sample(POSSIBILITIES, 20)
-    password = random.sample(POSSIBILITIES, 20)
+def set_flag(ip, port, flag, banner_id=None, password=None):
+    if not banner_id: banner_id = random.sample(POSSIBILITIES, 20)
+    if not password: password = random.sample(POSSIBILITIES, 20)
     colors = list(flag)
 
     if ip:

@@ -1009,7 +1009,8 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
       && line[i] == ':')
     printf("Your banner: %s\n", line+i+1);
   else
-    report_error("Invalid password");
+    puts("NEIN?");
+    //report_error("Invalid password");
 
   free(line);
   memset(generic_buf, 0, BUF_SIZE);
@@ -1308,7 +1309,11 @@ void activate_character(const char *name)
 
 void assign_value(character *c, int num)
 {
-  if (!c) report_error("Tried to assign value to non-existent character.");
+  if (!c) {
+    char err[62];
+    snprintf(err, 62, "Tried to assign value (%p) to non-existent character.", &num);
+    report_error(err);
+  }
 #ifdef DEBUG
   fprintf(stderr, "Attempting to assign %d to %s\n", num, c->name);
 #endif

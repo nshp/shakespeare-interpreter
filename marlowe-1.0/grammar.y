@@ -1193,17 +1193,17 @@ int yyerror(char *s)
 
 void report_error(const char *expected_symbol)
 {
-  fprintf(stderr, "Error at line %d: %s\n", yylineno, expected_symbol);
+  fprintf(stdout, "Error at line %d: %s\n", yylineno, expected_symbol);
 #ifdef DEBUG
   GList *names = g_hash_table_get_keys(CHARACTERS);
   GList *stage = g_hash_table_get_keys(ON_STAGE);
   while(names != NULL) {
-    fprintf(stderr, "\t%s exists.\n", (char*)names->data);
+    fprintf(stdout, "\t%s exists.\n", (char*)names->data);
     names = names->next;
   }
-  fprintf(stderr, "Actors on the stage:\n");
+  fprintf(stdout, "Actors on the stage:\n");
   while(stage != NULL) {
-    fprintf(stderr, "\t%s is on the stage.\n", (char*)stage->data);
+    fprintf(stdout, "\t%s is on the stage.\n", (char*)stage->data);
     stage = stage->next;
   }
 #endif

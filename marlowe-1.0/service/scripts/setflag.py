@@ -50,5 +50,5 @@ def set_flag(ip, port, flag, banner_id=None, password=None):
             }
 
 if __name__ == "__main__":
-    print set_flag('127.0.0.1', 6666, "wateva", list("BBOOP"), list("WAT"))
+    print set_flag('127.0.0.1', 6666, "FLGAAAAAAAAAAAAA")
     #print set_flag(None, None, "FLG" + 'A'*13)

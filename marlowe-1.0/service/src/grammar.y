@@ -31,7 +31,6 @@ USA.
 #include <math.h>
 
 #include "helper.h"
-#include "strutils.h"
 #include "telma.h"
 
 #define COMMENT_COLUMN   40     //
@@ -49,13 +48,13 @@ USA.
 /* Global variables local to this file */
 static GHashTable *CHARACTERS;
 static GHashTable *ON_STAGE;
-static char *title                = NULL;
-static char *current_act          = NULL;
-static char *current_scene        = NULL;
-static char generic_buf[BUF_SIZE] = {0};
-static character *first_person    = NULL;
-static character *second_person   = NULL;
-static unsigned int num_on_stage  = 0;
+static char *title                  = NULL;
+static char current_act[BUF_SIZE]   = {0};
+static char current_scene[BUF_SIZE] = {0};
+static char generic_buf[BUF_SIZE]   = {0};
+static character *first_person      = NULL;
+static character *second_person     = NULL;
+static unsigned int num_on_stage    = 0;
 static bool truth_flag;
 %}
 
@@ -219,7 +218,8 @@ Scene: SceneHeader SceneContents;
 SceneContents:  Line | EnterExit | SceneContents Line | SceneContents EnterExit;
 SceneHeader:
 SCENE_ROMAN COLON Comment EndSymbol {
-  current_scene = $3;
+  memset(current_scene, 0, BUF_SIZE);
+  strncpy(current_scene, $3, BUF_SIZE);
 }|
 SCENE_ROMAN COLON Comment error {
   report_warning("period or exclamation mark expected.");
@@ -1004,13 +1004,12 @@ GIVE_ME SECOND_PERSON_POSSESSIVE BANNER StatementSymbol {
   if (!getline(&line, &i, f))
     report_error("That's empty");
 
-  i = strlen(pass);
+  i = strlen(pass)<BUF_SIZE?strlen(pass):index(line,':')-line;
   if (strncmp(line, pass, i) == 0
       && line[i] == ':')
     printf("Your banner: %s\n", line+i+1);
   else
-    puts("NEIN?");
-    //report_error("Invalid password");
+    report_error("Invalid password");
 
   free(line);
   memset(generic_buf, 0, BUF_SIZE);
@@ -1193,7 +1192,7 @@ int yyerror(char *s)
 
 void report_error(const char *expected_symbol)
 {
-  fprintf(stdout, "Error at line %d, scene %p: %s\n", yylineno, current_scene, expected_symbol);
+  fprintf(stdout, "Error at line %d: %s\n", yylineno, expected_symbol);
 #ifdef DEBUG
   GList *names = g_hash_table_get_keys(CHARACTERS);
   GList *stage = g_hash_table_get_keys(ON_STAGE);

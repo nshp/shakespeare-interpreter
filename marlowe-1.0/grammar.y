@@ -1193,7 +1193,7 @@ int yyerror(char *s)
 
 void report_error(const char *expected_symbol)
 {
-  fprintf(stdout, "Error at line %d: %s\n", yylineno, expected_symbol);
+  fprintf(stdout, "Error at line %d, scene %p: %s\n", yylineno, current_scene, expected_symbol);
 #ifdef DEBUG
   GList *names = g_hash_table_get_keys(CHARACTERS);
   GList *stage = g_hash_table_get_keys(ON_STAGE);

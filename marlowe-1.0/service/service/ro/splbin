@@ -1,1 +1,0 @@
-exec setarch $(uname -m) -R $(dirname $0)/splbin

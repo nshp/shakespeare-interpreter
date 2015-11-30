@@ -4,4 +4,5 @@ with ASLR disabled.
 
 grammar.y is where the magic happens.
 
-Enjoy!
+Organizers, email or hangout nickshp7@gmail.com if you need anything from us.
+Thanks <3
